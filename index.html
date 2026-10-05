@@ -92,27 +92,55 @@ button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid 
 #overView{flex:1;min-height:0;display:flex;flex-direction:column}
 #weekScroll{flex:1;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior-y:contain;touch-action:pan-y;
   padding:var(--sp-2) var(--sp-4) calc(var(--sp-4) + var(--safe-b))}
-#weekBody{min-height:100%;display:flex;flex-direction:column;border-radius:var(--r);overflow:hidden;background:var(--card);border:1px solid var(--stroke);box-shadow:var(--shadow)}
+#weekBody{min-height:100%;display:flex;flex-direction:column;gap:var(--sp-2)}
 #weekBody.slide-l{animation:sl var(--med) var(--ease)}#weekBody.slide-r{animation:sr var(--med) var(--ease)}#weekBody.fade{animation:fd var(--med) var(--ease)}
-.wrow{flex:1 0 auto;display:flex;align-items:stretch;gap:var(--sp-3);width:100%;text-align:left;padding:11px var(--sp-4) 11px var(--sp-2);border-top:1px solid var(--hair);transition:background var(--fast)}
-.wrow:first-child{border-top:0}
-.wrow:active{background:var(--hair)}
-.wrow.today{background:color-mix(in srgb,var(--accent) 13%,transparent)}
-.wl{width:62px;flex:none;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px}
+/* One soft glass row per day. Events are tinted cards, the same as the Day screen. */
+.wrow{flex:1 0 auto;display:flex;align-items:stretch;gap:var(--sp-2);padding:var(--sp-2) var(--sp-2) var(--sp-2) 2px;border-radius:min(var(--r),22px);
+  background:var(--card);border:1px solid var(--stroke);box-shadow:var(--shadow);cursor:pointer;transition:transform var(--fast) var(--ease)}
+.wrow.today{background:color-mix(in srgb,var(--accent) 15%,var(--card));border-color:color-mix(in srgb,var(--accent) 60%,transparent)}
+.wrow.past{opacity:.5;box-shadow:none}
+.wl{width:66px;flex:none;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px}
 .wl .wd{font-size:12px;font-weight:600;color:var(--ink-3)}
-.wl .num{font:600 22px/1 var(--display);width:36px;height:36px;display:grid;place-items:center;border-radius:50%}
+.wl .num{font:600 21px/1 var(--display);width:34px;height:34px;display:grid;place-items:center;border-radius:50%}
 .wrow.today .num{background:var(--accent);color:#fff}
 .wrow.today .wd{color:var(--accent)}
-.wl .fr{font-size:11px;font-weight:600;color:var(--ink-2);white-space:nowrap}
-.wr{flex:1;min-width:0;display:flex;flex-direction:column;justify-content:center;gap:6px}
-.ev{display:flex;align-items:baseline;gap:var(--sp-2);padding-left:11px;position:relative}
-.ev::before{content:"";position:absolute;left:0;top:1px;bottom:1px;width:3.5px;border-radius:4px;background:var(--c)}
-.ev .t{flex:1;min-width:0;font-weight:600;font-size:15px;line-height:1.25;overflow-wrap:anywhere}
-.ev .w{flex:none;font-size:13px;color:var(--ink-2);font-variant-numeric:tabular-nums}
-.ev.past,.wrow.past .wr,.wrow.past .wl{opacity:.45}
-.ev.ad .t{font-size:13px;color:var(--ink-2)}
-.ev.ad::before{top:50%;bottom:auto;width:7px;height:7px;margin-top:-3.5px;border-radius:50%}
-.none{color:var(--ink-3);font-size:14px;padding-left:11px}
+.wl .fr{font-size:10.5px;font-weight:600;color:var(--ink-2);white-space:nowrap}
+.wr{flex:1;min-width:0;display:flex;flex-wrap:wrap;align-content:center;gap:6px}
+.ev{flex:1 1 calc(50% - 3px);min-width:118px;text-align:left;position:relative;padding:7px 10px 7px 15px;border-radius:min(var(--r-sm),14px);
+  background:color-mix(in srgb,var(--c) var(--tint),var(--card));border:1px solid color-mix(in srgb,var(--c) 18%,transparent)}
+.ev::before{content:"";position:absolute;left:6px;top:7px;bottom:7px;width:3.5px;border-radius:4px;background:var(--c)}
+.ev .t{display:block;font-weight:600;font-size:14.5px;line-height:1.22;overflow-wrap:anywhere}
+.ev .w{display:block;margin-top:1px;font-size:12.5px;color:var(--ink-2);font-variant-numeric:tabular-nums}
+.ev:active{transform:scale(.97)}
+.ev.past{opacity:.5}
+.ev.next{background:color-mix(in srgb,var(--c) var(--tint-hi),var(--card));border-color:color-mix(in srgb,var(--c) 60%,transparent)}
+.ev.ad{flex-basis:100%;padding:4px 10px 4px 22px;border-radius:999px}
+.ev.ad::before{top:50%;bottom:auto;left:9px;width:7px;height:7px;margin-top:-3.5px;border-radius:50%}
+.ev.ad .t{font-size:12.5px}
+.wgap{display:none}
+.none{flex:1;align-self:center;padding:9px 12px;border-radius:min(var(--r-sm),14px);border:1.5px dashed var(--hair);color:var(--ink-3);font-size:13.5px;font-weight:600}
+
+/* Mac / PC: the week becomes seven columns side by side */
+@media (min-width:900px){
+  #app{max-width:1280px}
+  #weekView,#monthView{width:100%;max-width:560px;margin:0 auto}
+  .top{padding-top:var(--sp-5)}
+  #weekBody{flex-direction:row;gap:10px}
+  .wrow{flex:1 1 0;min-width:0;flex-direction:column;gap:var(--sp-3);padding:var(--sp-3) 10px}
+  .wl{width:auto;flex-direction:row;justify-content:flex-start;align-items:center;gap:6px;padding-left:2px}
+  .wl .wd{font-size:13px;order:2}
+  .wl .num{order:1}
+  .wl .fr{order:3;margin-left:auto;font-size:11.5px}
+  .wr{flex-direction:column;flex-wrap:nowrap;justify-content:flex-start;align-content:stretch}
+  .ev{flex:none;min-width:0;padding:10px 10px 10px 16px}
+  .ev .t{font-size:15px}.ev .w{font-size:13px;margin-top:3px}
+  .ev.ad{flex:none;padding:5px 10px 5px 22px}
+  .wgap{display:flex;align-items:center;gap:8px;padding:2px 4px 2px 7px;min-height:var(--h);font-size:12.5px;color:var(--ink-3)}
+  .wgap::before{content:"";align-self:stretch;width:2px;border-radius:2px;background:repeating-linear-gradient(to bottom,var(--ink-3) 0 3px,transparent 3px 8px);opacity:.6}
+  .wgap.now{color:var(--accent);font-weight:600}
+  .wgap.past{opacity:.45}
+  .none{flex:none;align-self:stretch;text-align:center;padding:18px 8px}
+}
 
 /* ---------- Day ---------- */
 #weekView,#monthView{flex:1;min-height:0;display:flex;flex-direction:column}
@@ -292,9 +320,10 @@ var ICON={month:'<svg viewBox="0 0 24 24"><rect x="4" y="5" width="16" height="1
 /* ---------- Settings ---------- */
 var DEF={mode:'auto',accent:'#5b8cff',glass:60,radius:22,weekStart:0,h24:false,winStart:7,winEnd:23,updatedAt:0,
   types:[
-    {id:'t1',name:'INC work',color:'#0a84ff',words:['INC']},
+    {id:'t1',name:'INC work',color:'#0a84ff',words:['Working','INC']},
     {id:'t2',name:'Home Depot',color:'#ff9f0a',words:['Home Depot','HD']},
-    {id:'t3',name:'Workout',color:'#30d158',words:['Workout','Gym','Planet Fitness']},
+    {id:'t3',name:'Workout',color:'#30d158',words:['Gym','Workout','Planet Fitness']},
+    {id:'t5',name:'Bike',color:'#64d2ff',words:['Bike']},
     {id:'t4',name:'Pickleball',color:'#bf5af2',words:['Pickleball']}
   ]};
 function ls(k,v){try{if(v===undefined){var x=localStorage.getItem(k);return x?JSON.parse(x):null}localStorage.setItem(k,JSON.stringify(v))}catch(e){return null}}
@@ -522,18 +551,24 @@ function renderWeek(dir){
   for(var i=0;i<7;i++){
     var d=addD(ws,i), P=plan(d), E=P.E, n=E.timed.length;
     var fr=P.past?'':(n?(P.freeMs?fDur(P.freeMs)+' free':'Full'):'');
-    h+='<button class="wrow'+(P.isToday?' today':'')+(P.past?' past':'')+'" data-d="'+key(d)+'" aria-label="'+WD[d.getDay()]+' '+MO[d.getMonth()]+' '+d.getDate()+'">'+
+    h+='<div class="wrow'+(P.isToday?' today':'')+(P.past?' past':'')+'" data-d="'+key(d)+'" role="button" tabindex="0" aria-label="'+WD[d.getDay()]+' '+MO[d.getMonth()]+' '+d.getDate()+'">'+
       '<span class="wl"><span class="wd">'+WD[d.getDay()].slice(0,3)+'</span><span class="num">'+d.getDate()+'</span>'+(fr?'<span class="fr">'+fr+'</span>':'')+'</span><span class="wr">';
-    E.all.forEach(function(e){h+='<span class="ev ad" style="--c:'+colorOf(e)+'"><span class="t">'+esc(e.title)+'</span></span>'});
-    E.timed.forEach(function(e){
+    E.all.forEach(function(e){h+='<button class="ev ad" data-id="'+esc(e.id)+'" style="--c:'+colorOf(e)+'"><span class="t">'+esc(e.title)+'</span></button>'});
+    P.items.forEach(function(it){
+      if(it.free){
+        var hrs=(it.b-it.a)/36e5;
+        h+='<span class="wgap'+(it.past?' past':'')+(it.live?' now':'')+'" style="--h:'+Math.round(Math.min(84,18+hrs*9))+'px">'+(it.live?'Free now, until '+fS(it.b,true):'Free '+fSRange(it.a,it.b))+'</span>';
+        return;
+      }
+      var e=it.e;
       var when=e.s<E.a?'until '+fS(e.e,true):(e.e>E.b?'from '+fS(e.s,true):(e.s===e.e?fS(e.s,true):fSRange(e.s,e.e)));
-      h+='<span class="ev'+(P.isToday&&e.e<=now?' past':'')+'" style="--c:'+colorOf(e)+'"><span class="t">'+esc(e.title)+'</span><span class="w">'+when+'</span></span>';
+      h+='<button class="ev'+(P.isToday&&e.e<=now?' past':'')+(e.id===P.nextId?' next':'')+'" data-id="'+esc(e.id)+'" style="--c:'+colorOf(e)+'"><span class="t">'+esc(e.title)+'</span><span class="w">'+when+'</span></button>';
     });
     if(!n)h+='<span class="none">'+(E.all.length?'Nothing timed':(lastFetch||notice?'Free all day':'Loading…'))+'</span>';
-    h+='</span></button>';
+    h+='</span></div>';
   }
   var body=$('weekBody');
-  body.innerHTML=(notice?'<div class="notice" style="margin:12px">'+esc(notice)+'</div>':'')+h;
+  body.innerHTML=(notice?'<div class="notice" style="margin:0">'+esc(notice)+'</div>':'')+h;
   if(lastView!=='week')anim(body,'fade');
   else if(lastSel&&!same(weekStart(lastSel),ws)){anim(body,(dir||(sel>lastSel?1:-1))>0?'slide-l':'slide-r');$('weekScroll').scrollTop=0}
 }
@@ -593,7 +628,12 @@ function step(n){
 }
 $('days').addEventListener('click',function(ev){var b=ev.target.closest('.day');if(b)go(addD(wk,+b.dataset.i))});
 $('grid').addEventListener('click',function(ev){var b=ev.target.closest('.cell');if(!b)return;sel=new Date(localDate(b.dataset.d));view='day';wk=null;render()});
-$('weekBody').addEventListener('click',function(ev){var b=ev.target.closest('.wrow');if(!b)return;sel=new Date(localDate(b.dataset.d));view='day';wk=null;render()});
+function openDay(row){sel=new Date(localDate(row.dataset.d));view='day';wk=null;render()}
+$('weekBody').addEventListener('click',function(ev){
+  var e=ev.target.closest('.ev'); if(e)return openDetail(e.dataset.id);
+  var b=ev.target.closest('.wrow'); if(b)openDay(b);
+});
+$('weekBody').addEventListener('keydown',function(ev){if(ev.key==='Enter'&&ev.target.classList.contains('wrow'))openDay(ev.target)});
 $('todayBtn').onclick=function(){go(today,sel>today?-1:1)};
 $('viewBtn').onclick=function(){view=view==='week'?'month':'week';wk=null;render()}; // from Day or Month this goes back to Week
 $('prevBtn').onclick=function(){step(-1)};

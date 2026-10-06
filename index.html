@@ -128,16 +128,18 @@ button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid 
 #weekBody{min-height:100%;display:flex;flex-direction:column;gap:5px}
 #weekBody.slide-l{animation:sl var(--med) var(--ease)}#weekBody.slide-r{animation:sr var(--med) var(--ease)}#weekBody.fade{animation:fd var(--med) var(--ease)}
 /* One soft glass row per day. Events are tinted cards, the same as the Day screen. */
-.wrow{flex:1 0 auto;display:flex;align-items:stretch;gap:var(--sp-2);padding:6px 6px 6px 2px;border-radius:min(var(--r),20px);
+.wrow{flex:1 0 auto;display:flex;align-items:stretch;gap:var(--sp-2);padding:6px 6px 6px 0;border-radius:min(var(--r),20px);
   background:var(--card);border:1px solid var(--stroke);box-shadow:var(--shadow);cursor:pointer;transition:transform var(--fast) var(--ease)}
 .wrow.today{background:color-mix(in srgb,var(--accent) 15%,var(--card));border-color:color-mix(in srgb,var(--accent) 60%,transparent)}
 .wrow.past{opacity:.5;box-shadow:none}
-.wl{width:68px;flex:none;display:grid;grid-template-columns:auto auto;justify-content:center;align-items:center;align-content:center;column-gap:3px;row-gap:3px}
-.wl .wd{font-size:12px;font-weight:600;color:var(--ink-3)}
-.wl .num{font:600 20px/1 var(--display);min-width:28px;height:28px;display:grid;place-items:center;border-radius:50%}
-.wrow.today .num{background:var(--accent);color:#fff}
+/* Day rail: date and weekday on one line, free time under it, all on one left edge */
+.wl{width:84px;flex:none;display:grid;grid-template-columns:auto 1fr;align-items:center;align-content:center;column-gap:6px;row-gap:4px;padding-left:12px}
+.wl .wd{order:2;font-size:13px;font-weight:600;color:var(--ink-3)}
+.wl .num{order:1;font:700 22px/1 var(--display);height:28px;display:grid;place-items:center;border-radius:14px}
+.wrow.today .num{background:var(--accent);color:#fff;min-width:28px;padding:0 7px;margin-left:-7px}
 .wrow.today .wd{color:var(--accent)}
-.wl .fr{grid-column:1/-1;text-align:center;font-size:10.5px;font-weight:600;color:var(--ink-2);white-space:nowrap}
+.wl .fr{order:3;grid-column:1/-1;font-size:11px;font-weight:600;color:var(--ink-2);white-space:nowrap}
+.wl .fr em{font-style:normal;font-weight:500;color:var(--ink-3)}
 .wr{flex:1;min-width:0;display:flex;flex-wrap:wrap;align-content:center;gap:5px}
 .ev{flex:1 1 calc(50% - 3px);min-width:118px;text-align:left;position:relative;padding:5px 9px 5px 15px;border-radius:min(var(--r-sm),13px);
   background:color-mix(in srgb,var(--c) var(--tint),var(--card));border:1px solid color-mix(in srgb,var(--c) 18%,transparent)}
@@ -147,7 +149,11 @@ button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid 
 .ev:active{transform:scale(.97)}
 .ev.past{opacity:.5}
 .ev.next{background:color-mix(in srgb,var(--c) var(--tint-hi),var(--card));border-color:color-mix(in srgb,var(--c) 60%,transparent)}
-.ev.ad{flex-basis:100%;padding:3px 10px 3px 22px;border-radius:999px}
+.chips{flex:0 0 100%;display:flex;flex-wrap:wrap;gap:5px}
+.ev.ad{flex:0 1 auto;min-width:0;padding:3px 11px 3px 22px;border-radius:999px}
+/* A day note (payday, say): a hollow marker, lighter than a real event */
+.ev.note{background:transparent;border-color:color-mix(in srgb,var(--c) 45%,transparent)}
+.ev.note::before{background:transparent;box-shadow:inset 0 0 0 2px var(--c)}
 .ev.ad::before{top:50%;bottom:auto;left:9px;width:7px;height:7px;margin-top:-3.5px;border-radius:50%}
 .ev.ad .t{font-size:12.5px}
 .wgap{display:none}
@@ -162,15 +168,15 @@ button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid 
   #weekBody{flex-direction:row;gap:10px}
   .wrow{flex:1 1 0;min-width:0;flex-direction:column;gap:var(--sp-3);padding:var(--sp-3) 10px}
   .wr{gap:6px}
-  .wl .num{width:34px;height:34px}
-  .wl{display:flex;width:auto;flex-direction:row;justify-content:flex-start;align-items:center;gap:6px;padding-left:2px}
-  .wl .wd{font-size:13px;order:2}
-  .wl .num{order:1}
-  .wl .fr{order:3;margin-left:auto;font-size:11.5px}
+  .wl .num{min-width:34px;height:34px}
+  .wl{display:flex;width:auto;flex-direction:row;justify-content:flex-start;align-items:center;gap:6px;padding-left:4px}
+  .wrow.today .num{margin-left:0}
+  .wl .fr{margin-left:auto;font-size:11.5px}
   .wr{flex-direction:column;flex-wrap:nowrap;justify-content:flex-start;align-content:stretch}
   .ev{flex:none;min-width:0;padding:10px 10px 10px 16px}
   .ev .t{font-size:15px}.ev .w{font-size:13px;margin-top:3px}
-  .ev.ad{flex:none;padding:5px 10px 5px 22px}
+  .ev.ad{padding:5px 10px 5px 22px}
+  .chips{flex:none}
   .wgap{display:flex;align-items:center;gap:8px;padding:2px 4px 2px 7px;min-height:var(--h);font-size:12.5px;color:var(--ink-3)}
   .wgap::before{content:"";align-self:stretch;width:2px;border-radius:2px;background:repeating-linear-gradient(to bottom,var(--ink-3) 0 3px,transparent 3px 8px);opacity:.6}
   .wgap.now{color:var(--accent);font-weight:600}
@@ -194,6 +200,8 @@ button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid 
 .chip{display:inline-flex;align-items:center;gap:6px;padding:6px 12px;border-radius:999px;font-size:13px;font-weight:600;
   background:color-mix(in srgb,var(--c) var(--tint),var(--card));border:1px solid color-mix(in srgb,var(--c) 22%,var(--stroke))}
 .chip i{width:7px;height:7px;border-radius:50%;background:var(--c)}
+.chip.note{background:transparent;border-color:color-mix(in srgb,var(--c) 45%,transparent)}
+.chip.note i{background:transparent;box-shadow:inset 0 0 0 2px var(--c)}
 
 .card{display:block;width:100%;text-align:left;position:relative;padding:14px var(--sp-4) 14px 22px;border-radius:var(--r);
   background:color-mix(in srgb,var(--c) var(--tint),var(--card));border:1px solid color-mix(in srgb,var(--c) 16%,var(--stroke));
@@ -234,6 +242,9 @@ button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid 
   transition:background var(--fast),border-color var(--fast),transform var(--fast) var(--ease)}
 .cell .num{font:600 17px/1 var(--display)}
 .cell .marks i{width:7px}
+.cell{position:relative}
+.cell .nd{position:absolute;top:6px;right:7px;width:6px;height:6px;border-radius:50%;box-shadow:inset 0 0 0 1.5px var(--c)}
+.cell.sel .nd{box-shadow:inset 0 0 0 1.5px #fff}
 .cell.busy{background:color-mix(in srgb,var(--ink) 5%,transparent)}
 .cell.out{opacity:.3}
 .cell.gone .num{color:var(--ink-3)}
@@ -251,7 +262,7 @@ button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid 
 .ahead .sub{font-size:13.5px;color:var(--ink-2);margin-top:3px}
 .ahead .pill{margin-left:auto;color:var(--accent);flex:none}
 #agenda .wr{align-content:flex-start;gap:var(--sp-2)}
-#agenda .ev{padding:9px 10px 9px 16px}
+#agenda .ev:not(.ad){padding:9px 10px 9px 16px}
 
 /* ---------- Jump to month / year ---------- */
 .yr{display:flex;align-items:center;justify-content:space-between;margin-bottom:var(--sp-4)}
@@ -307,7 +318,16 @@ select,input[type=text],input[type=password]{font:inherit;color:var(--ink);backg
 .type input[type=color]::-webkit-color-swatch-wrapper{padding:0}
 .type input[type=color]::-webkit-color-swatch{border:0;border-radius:50%}
 .type .nm{flex:1;font-weight:600}
-.type .wds{width:100%;margin-top:var(--sp-2);font-size:14px}
+.type .wds{width:100%;font-size:14px}
+.type .lab{display:block;margin:10px 0 5px;font-size:12px;font-weight:600;color:var(--ink-3)}
+.type .sh{display:flex;align-items:center;justify-content:space-between;gap:var(--sp-2);margin-top:10px;font-size:14px;color:var(--ink-2)}
+.type .sh .seg button{padding:5px 11px;font-size:13px}
+.type .match{margin-top:10px;font-size:12.5px;line-height:1.4;color:var(--ink-2)}
+.type .match b{font-weight:600;color:var(--ink)}
+.type .match.miss{color:#ff9f0a}
+.unm{display:flex;flex-wrap:wrap;gap:6px;padding:var(--sp-3) var(--sp-4)}
+.unm button{padding:6px 11px;border-radius:999px;background:var(--hair);font-size:13px;font-weight:600}
+.unm button::before{content:"+ ";color:var(--accent)}
 .mini{width:32px;height:32px;border-radius:50%;background:var(--hair);font-size:15px;color:var(--ink-2);flex:none}
 .mini:disabled{opacity:.3}
 .act{width:100%;padding:var(--sp-4);text-align:left;font-weight:600;color:var(--accent);border-top:1px solid var(--hair)}
@@ -424,17 +444,30 @@ window.addEventListener('pageshow',function(){setTimeout(settle,120)});
 document.addEventListener('focusout',function(){setTimeout(settle,180)});
 
 /* ---------- Settings ---------- */
-var DEF={mode:'auto',accent:'#5b8cff',glass:60,radius:22,weekStart:0,h24:false,winStart:7,winEnd:23,updatedAt:0,
+var DEF={v:2,mode:'auto',accent:'#5b8cff',glass:60,radius:22,weekStart:0,h24:false,winStart:7,winEnd:23,updatedAt:0,
+  // show: 'card' (normal event), 'note' (small marker on the day, not counted as an event), 'hide'
   types:[
+    {id:'t0',name:'Payday',color:'#ffd60a',words:['Paycheck','Payday'],show:'note'},
     {id:'t1',name:'INC work',color:'#0a84ff',words:['Working','INC']},
     {id:'t2',name:'Home Depot',color:'#ff9f0a',words:['Home Depot','HD']},
-    {id:'t3',name:'Workout',color:'#30d158',words:['Gym','Workout','Planet Fitness']},
-    {id:'t5',name:'Bike',color:'#64d2ff',words:['Bike']},
+    {id:'t3',name:'Workout',color:'#30d158',words:['Gym','Workout','Bike','Planet Fitness']},
     {id:'t4',name:'Pickleball',color:'#bf5af2',words:['Pickleball']}
   ]};
 function ls(k,v){try{if(v===undefined){var x=localStorage.getItem(k);return x?JSON.parse(x):null}localStorage.setItem(k,JSON.stringify(v))}catch(e){return null}}
 function lsDel(k){try{localStorage.removeItem(k)}catch(e){}}
-var S=Object.assign({},DEF,ls('glance.settings')||{});
+function adopt(saved){var x=Object.assign({},DEF,saved||{});if(saved&&!saved.v)x.v=1;return x}
+var S=adopt(ls('glance.settings'));
+// One-time upgrade of settings saved by builds 1-4: add the Payday day note, and make bike rides count as Workout
+function migrate(){
+  if((S.v||1)>=2)return false;
+  var has=function(t,w){return (t.words||[]).some(function(x){return String(x).toLowerCase()===w})};
+  if(!S.types.some(function(t){return t.show==='note'||has(t,'paycheck')}))
+    S.types.unshift({id:'t0',name:'Payday',color:'#ffd60a',words:['Paycheck','Payday'],show:'note'});
+  var claimed=S.types.some(function(t){return has(t,'bike')});
+  S.types.forEach(function(t){if(!claimed&&/workout/i.test(t.name)){t.words=(t.words||[]).concat('Bike');claimed=true}});
+  S.v=2; S.updatedAt=Date.now(); ls('glance.settings',S); return true;
+}
+migrate();
 var synced=null; // true = Supabase on, false = this device only
 var mq=window.matchMedia('(prefers-color-scheme: dark)');
 
@@ -460,7 +493,7 @@ function pullSettings(){
   return api('/api/settings').then(function(j){
     synced=!!j.synced;
     if(j.settings&&(j.settings.updatedAt||0)>(S.updatedAt||0)){
-      S=Object.assign({},DEF,j.settings); ls('glance.settings',S); marksV++; applySettings(); render();
+      S=adopt(j.settings); ls('glance.settings',S); if(migrate())pushSettings(); marksV++; applySettings(); render();
     }else if(j.synced&&(S.updatedAt||0)>((j.settings&&j.settings.updatedAt)||0)){ pushSettings(); }
   }).catch(function(){});
 }
@@ -517,24 +550,29 @@ function typeOf(e){
 function colorOf(e){var t=typeOf(e);return t?t.color:(GCOL[e.colorId]||S.accent)}
 
 function dayEvents(d0){
-  var a=d0.getTime(), b=addD(d0,1).getTime(), timed=[], all=[];
+  var a=d0.getTime(), b=addD(d0,1).getTime(), timed=[], all=[], notes=[];
   for(var i=0;i<EV.length;i++){
-    var e=EV[i];
-    if(e.allDay){ if(e.s<b&&e.e>a)all.push(e); continue; }
-    if(!(e.s<b&&(e.e>a||(e.s===e.e&&e.s>=a))))continue;
-    if(e.s<=a&&e.e>=b)all.push(e); else timed.push(e);
+    var e=EV[i], hit=e.allDay?(e.s<b&&e.e>a):(e.s<b&&(e.e>a||(e.s===e.e&&e.s>=a)));
+    if(!hit)continue;
+    var t=typeOf(e), show=t&&t.show;
+    if(show==='hide')continue;
+    if(show==='note'){notes.push(e);continue}
+    if(e.allDay||(e.s<=a&&e.e>=b))all.push(e); else timed.push(e);
   }
   timed.sort(function(x,y){return x.s-y.s||x.e-y.e});
-  return {timed:timed,all:all,a:a,b:b};
+  return {timed:timed,all:all,notes:notes,a:a,b:b};
 }
+var noteMarks={};
 function buildMarks(){
-  if(marksAt===marksV)return; marksAt=marksV; marks={};
+  if(marksAt===marksV)return; marksAt=marksV; marks={}; noteMarks={};
   var sorted=EV.slice().sort(function(x,y){return x.s-y.s});
   sorted.forEach(function(e){
+    var t=typeOf(e), show=t&&t.show; if(show==='hide')return;
     var c=colorOf(e), d=sod(new Date(e.s)), end=Math.max(e.e-1,e.s), n=0;
     while(d.getTime()<=end&&n<60){
-      var k=key(d), m=marks[k]||(marks[k]=[]);
-      if(m.indexOf(c)<0&&m.length<4)m.push(c);
+      var k=key(d);
+      if(show==='note')noteMarks[k]=c;
+      else{var m=marks[k]||(marks[k]=[]); if(m.indexOf(c)<0&&m.length<4)m.push(c)}
       d=addD(d,1); n++;
     }
   });
@@ -653,7 +691,12 @@ function plan(day){ // events in time order, with free gaps inside the day windo
 
 function evCards(P){ // compact tinted cards for one day (week rows + month agenda)
   var E=P.E, now=Date.now(), h='';
-  E.all.forEach(function(e){h+='<button class="ev ad" data-id="'+esc(e.id)+'" style="--c:'+colorOf(e)+'"><span class="t">'+esc(e.title)+'</span></button>'});
+  if(E.all.length||E.notes.length){
+    h+='<span class="chips">';
+    E.all.forEach(function(e){h+='<button class="ev ad" data-id="'+esc(e.id)+'" style="--c:'+colorOf(e)+'"><span class="t">'+esc(e.title)+'</span></button>'});
+    E.notes.forEach(function(e){h+='<button class="ev ad note" data-id="'+esc(e.id)+'" style="--c:'+colorOf(e)+'"><span class="t">'+esc(e.title)+'</span></button>'});
+    h+='</span>';
+  }
   P.items.forEach(function(it){
     if(it.free){
       var hrs=(it.b-it.a)/36e5;
@@ -667,12 +710,12 @@ function evCards(P){ // compact tinted cards for one day (week rows + month agen
   if(!E.timed.length)h+='<span class="none">'+(E.all.length?'Nothing timed':(lastFetch||notice?'Free all day':'Loading…'))+'</span>';
   return h;
 }
-function freeText(P){return P.past?'':(P.E.timed.length?(P.freeMs?fDur(P.freeMs)+' free':'Full'):'')}
+function freeText(P,rich){return P.past?'':(P.E.timed.length?(P.freeMs?fDur(P.freeMs)+(rich?' <em>free</em>':' free'):'Full'):'')}
 
 function renderWeek(dir){
   var ws=weekStart(sel), h='';
   for(var i=0;i<7;i++){
-    var d=addD(ws,i), P=plan(d), fr=freeText(P);
+    var d=addD(ws,i), P=plan(d), fr=freeText(P,true);
     h+='<div class="wrow'+(P.isToday?' today':'')+(P.past?' past':'')+'" data-d="'+key(d)+'" role="button" tabindex="0" aria-label="'+WD[d.getDay()]+' '+MO[d.getMonth()]+' '+d.getDate()+'">'+
       '<span class="wl"><span class="wd">'+WD[d.getDay()].slice(0,3)+'</span><span class="num">'+d.getDate()+'</span>'+(fr?'<span class="fr">'+fr+'</span>':'')+'</span><span class="wr">'+evCards(P)+'</span></div>';
   }
@@ -689,7 +732,7 @@ function renderDay(dir){
   if(n)h+='<div class="verdict"><b>'+(freeMs?fDur(freeMs)+' free':'No free time')+'</b>'+n+(n===1?' event':' events')+'</div>';
   h+='</div>';
   if(notice)h+='<div class="notice">'+esc(notice)+'</div>';
-  if(E.all.length)h+='<div class="allday">'+E.all.map(function(e){return '<button class="chip" data-id="'+esc(e.id)+'" style="--c:'+colorOf(e)+'"><i></i>'+esc(e.title)+'</button>'}).join('')+'</div>';
+  if(E.all.length||E.notes.length)h+='<div class="allday">'+E.all.concat(E.notes).map(function(e){return '<button class="chip'+(E.notes.indexOf(e)>-1?' note':'')+'" data-id="'+esc(e.id)+'" style="--c:'+colorOf(e)+'"><i></i>'+esc(e.title)+'</button>'}).join('')+'</div>';
 
   if(!n){
     h+='<div class="open"><b>'+(E.all.length?'Nothing timed':'Free all day')+'</b>'+(lastFetch||notice?'No events on the calendar.':'Loading your calendar…')+'</div>';
@@ -722,7 +765,7 @@ function renderMonth(dir){
   var weeks=Math.ceil((Math.round((first-start)/DAY)+new Date(sel.getFullYear(),sel.getMonth()+1,0).getDate())/7);
   for(i=0;i<weeks*7;i++){
     var d=addD(start,i), has=(marks[key(d)]||[]).length;
-    h+='<button class="cell'+(d.getMonth()!==sel.getMonth()?' out':'')+(same(d,today)?' today':'')+(same(d,sel)?' sel':'')+(has?' busy':'')+(d<today?' gone':'')+'" data-d="'+key(d)+'" aria-label="'+MO[d.getMonth()]+' '+d.getDate()+'"><span class="num">'+d.getDate()+'</span>'+marksHtml(d)+'</button>';
+    h+='<button class="cell'+(d.getMonth()!==sel.getMonth()?' out':'')+(same(d,today)?' today':'')+(same(d,sel)?' sel':'')+(has?' busy':'')+(d<today?' gone':'')+'" data-d="'+key(d)+'" aria-label="'+MO[d.getMonth()]+' '+d.getDate()+'"><span class="num">'+d.getDate()+'</span>'+marksHtml(d)+(noteMarks[key(d)]?'<i class="nd" style="--c:'+noteMarks[key(d)]+'"></i>':'')+'</button>';
   }
   var g=$('grid'); g.innerHTML=h;
   if(lastView==='month'&&lastSel&&mkey(lastSel)!==mkey(sel))anim(g,(dir||(sel>lastSel?1:-1))>0?'slide-l':'slide-r');
@@ -842,12 +885,25 @@ function renderSettings(){
     '<div class="line"><span>Glass</span><input type="range" id="glassR" min="0" max="100" value="'+S.glass+'" aria-label="Glass strength"></div>'+
     '<div class="line"><span>Roundness</span><input type="range" id="radR" min="6" max="32" value="'+S.radius+'" aria-label="Roundness"></div>'+
     '</div><p class="hint">Lower glass is faster on the phone.</p></div>';
-  h+='<div class="sec"><h4>Event types</h4><div class="box" id="types">'+S.types.map(function(t,i){
-    return '<div class="type" data-i="'+i+'"><div class="a"><input type="color" value="'+esc(t.color)+'" data-f="color" aria-label="Color"><input type="text" class="nm" value="'+esc(t.name)+'" data-f="name" placeholder="Name" aria-label="Type name">'+
-      '<button class="mini" data-mv="-1" aria-label="Move up"'+(i===0?' disabled':'')+'>↑</button><button class="mini" data-mv="1" aria-label="Move down"'+(i===S.types.length-1?' disabled':'')+'>↓</button><button class="mini" data-del="1" aria-label="Delete type">✕</button></div>'+
-      '<input type="text" class="wds" value="'+esc((t.words||[]).join(', '))+'" data-f="words" placeholder="Title words, separated by commas" aria-label="Title words" autocapitalize="off" autocorrect="off"></div>';
-  }).join('')+'<button class="act" id="addType">Add event type</button></div>'+
-    '<p class="hint">An event gets the color of the first type whose words appear in its title. Events that match nothing keep their Google Calendar color.</p></div>';
+  // Which titles each type is catching right now, and which titles nothing catches
+  var seen={}, hits={}, loose=[];
+  EV.forEach(function(e){
+    if(seen[e.title])return; seen[e.title]=1;
+    var ty=typeOf(e); if(ty)(hits[ty.id]||(hits[ty.id]=[])).push(e.title); else loose.push(e.title);
+  });
+  h+='<div class="sec"><h4>Event colors</h4><p class="hint" style="margin:0 4px 10px">Glance picks an event\'s color by looking for words in its title. It checks these from the top down and uses the first one that fits.</p>'+
+    '<div class="box" id="types">'+S.types.map(function(t,i){
+    var m=hits[t.id]||[], show=t.show||'card';
+    return '<div class="type" data-i="'+i+'"><div class="a"><input type="color" value="'+esc(t.color)+'" data-f="color" aria-label="Color"><input type="text" class="nm" value="'+esc(t.name)+'" data-f="name" placeholder="Name" aria-label="Name">'+
+      '<button class="mini" data-mv="-1" aria-label="Move up"'+(i===0?' disabled':'')+'>↑</button><button class="mini" data-mv="1" aria-label="Move down"'+(i===S.types.length-1?' disabled':'')+'>↓</button><button class="mini" data-del="1" aria-label="Delete">✕</button></div>'+
+      '<label class="lab">Use for titles that contain (commas between words)</label>'+
+      '<input type="text" class="wds" value="'+esc((t.words||[]).join(', '))+'" data-f="words" placeholder="Gym, Bike, Run" aria-label="Title words" autocapitalize="off" autocorrect="off">'+
+      '<div class="sh"><span>Show as</span>'+seg('show',[['card','Event'],['note','Day note'],['hide','Hidden']],show)+'</div>'+
+      '<div class="match'+(m.length?'':' miss')+'">'+(m.length?'Catching now: <b>'+m.slice(0,4).map(esc).join(', ')+'</b>'+(m.length>4?' and '+(m.length-4)+' more':''):'Not catching any events right now')+'</div></div>';
+  }).join('')+'<button class="act" id="addType">Add a color</button></div>'+
+    '<p class="hint">A day note is a small marker on the day instead of an event card. It doesn\'t count toward events or free time.</p>'+
+    (loose.length?'<h4 style="margin:18px 4px 8px;font-size:14px;font-weight:600;color:var(--ink-2)">Titles with no color yet</h4><div class="box"><div class="unm">'+loose.slice(0,12).map(function(x){return '<button data-unm="'+esc(x)+'">'+esc(x)+'</button>'}).join('')+'</div></div>'+
+      '<p class="hint">These show the color set on the event in Google Calendar. If the event has none, they use your accent color, because the calendar\'s own color doesn\'t come through. Tap a title to give it a color here.</p>':'')+'</div>';
   h+='<div class="sec"><h4>Calendar</h4><div class="box">'+
     '<div class="line"><span>Week starts</span>'+seg('weekStart',[[0,'Sunday'],[1,'Monday']],S.weekStart)+'</div>'+
     '<div class="line"><span>Time</span>'+seg('h24',[['false','12 hour'],['true','24 hour']],S.h24)+'</div>'+
@@ -864,7 +920,9 @@ $('settings').addEventListener('click',function(ev){
   if(t.id==='setDone')return closeSheets();
   if(t.id==='refNow'){closeSheets();return refresh()}
   if(t.id==='lockNow'){closeSheets();KEY='';lsDel('glance.key');lsDel('glance.events');EV=[];lastFetch=0;marksV++;return lock('')}
-  if(t.id==='addType'){S.types.push({id:'t'+Date.now(),name:'New type',color:'#64d2ff',words:[]});return changed(true)}
+  if(t.id==='addType'){S.types.push({id:'t'+Date.now(),name:'New color',color:'#64d2ff',words:[]});return changed(true)}
+  if(t.dataset.unm){S.types.push({id:'t'+Date.now(),name:t.dataset.unm,color:'#64d2ff',words:[t.dataset.unm]});return changed(true)}
+  if(t.dataset.v!==undefined&&t.closest('[data-seg="show"]')){S.types[+t.closest('.type').dataset.i].show=t.dataset.v;return changed(true)}
   if((b=t.closest('[data-seg]'))&&t.dataset.v!==undefined){
     var k=b.dataset.seg,v=t.dataset.v;
     if(k==='fill'){try{localStorage.setItem('glance.fill',v)}catch(e){} fitH(); return renderSettings()}

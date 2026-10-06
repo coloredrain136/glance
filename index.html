@@ -41,15 +41,23 @@ html[data-mode="dark"]{
 }
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html,body{height:100%;margin:0}
-body{background:var(--bg);color:var(--ink);font:16px/1.35 var(--font);overflow:hidden;
+html{overscroll-behavior:none}
+body{background:var(--bg);color:var(--ink);font:16px/1.35 var(--font);
   -webkit-font-smoothing:antialiased;-webkit-user-select:none;user-select:none}
 /* Wallpaper: a still, smooth wash of the accent so the glass has something to sit on */
-/* One root box holds everything, so the whole app follows a single height (see fitH in the script).
-   The wallpaper glow lives at the top only and fades to plain background well before the bottom edge. */
-#root{position:fixed;top:0;left:0;right:0;height:var(--app-h,100%);overflow:hidden;background:
-  radial-gradient(95% 46% at 100% 0%,color-mix(in srgb,var(--accent) var(--wall-a),transparent),transparent 72%),
-  radial-gradient(70% 34% at 0% 0%,color-mix(in srgb,var(--accent) var(--wall-b),transparent),transparent 70%),
-  var(--bg)}
+/* One root box holds everything. It sits in the normal page flow (not position:fixed) and is sized in
+   viewport units, because iPhone home-screen apps lay out fixed and percentage heights against a
+   viewport that stops short of the bottom of the screen. See fitH in the script. */
+#root{position:relative;isolation:isolate;height:100vh;height:var(--app-h,100dvh);overflow:hidden;background:var(--bg)}
+/* Wallpaper glow. It starts below the status bar and is gone well before the bottom edge. */
+#root::before{content:"";position:absolute;inset:0;z-index:-1;pointer-events:none;background:
+  radial-gradient(95% 44% at 100% 8%,color-mix(in srgb,var(--accent) var(--wall-a),transparent),transparent 72%),
+  radial-gradient(70% 32% at 0% 6%,color-mix(in srgb,var(--accent) var(--wall-b),transparent),transparent 70%);
+  -webkit-mask-image:linear-gradient(to bottom,transparent var(--safe-t),#000 calc(var(--safe-t) + 110px));
+  mask-image:linear-gradient(to bottom,transparent var(--safe-t),#000 calc(var(--safe-t) + 110px))}
+/* A solid strip behind the status bar. Since iOS 26, a home-screen app with nothing solid up here
+   gets a system blur over the top of the page, which smeared the title. */
+#cap{position:fixed;top:0;left:0;right:0;height:var(--safe-t);background-color:var(--bg);z-index:60;pointer-events:none}
 *{scrollbar-width:none}*::-webkit-scrollbar{display:none}
 /* Scrolling content fades out at the top and bottom instead of being cut off with a hard edge */
 .fadeY{-webkit-mask-image:linear-gradient(to bottom,transparent 0,#000 14px,#000 calc(100% - var(--dock) - 30px),transparent calc(100% - var(--dock) - 4px));
@@ -63,7 +71,7 @@ button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid 
 #app{position:relative;height:100%;max-width:560px;margin:0 auto;display:flex;flex-direction:column;padding-top:var(--safe-t)}
 
 /* ---------- Top: just the title. Controls live in the dock at the bottom. ---------- */
-.top{display:flex;align-items:center;gap:var(--sp-2);padding:4px var(--sp-4) 0;min-height:44px}
+.top{display:flex;align-items:center;gap:var(--sp-2);padding:10px var(--sp-4) 0;min-height:44px}
 #titleBtn{display:inline-flex;align-items:center;gap:6px;min-height:44px;margin-right:auto;border-radius:var(--r-xs)}
 #titleBtn h1{font:700 28px/1.1 var(--display);letter-spacing:-.02em;margin:0;white-space:nowrap}
 #titleBtn h1 small{font:500 15px var(--font);color:var(--ink-3);margin-left:6px;letter-spacing:0}
@@ -321,6 +329,7 @@ select,input[type=text],input[type=password]{font:inherit;color:var(--ink);backg
 </style>
 </head>
 <body>
+<div id="cap"></div>
 <div id="root">
 <div id="app">
   <header class="top">
@@ -381,18 +390,38 @@ var MO=['January','February','March','April','May','June','July','August','Septe
 var GCOL={1:'#7986cb',2:'#33b679',3:'#8e24aa',4:'#e67c73',5:'#f6bf26',6:'#f4511e',7:'#039be5',8:'#8a8f98',9:'#3f51b5',10:'#0b8043',11:'#d50000'};
 var ACCENTS=['#5b8cff','#0a84ff','#30b0c7','#30d158','#ff9f0a','#ff6482','#bf5af2','#8e8e93'];
 
-/* iPhone home-screen apps can report a page height that stops short of the bottom of the screen.
-   When that happens, size the root box to the real screen height instead. */
-function fitH(){
-  var st=window.navigator.standalone===true, h=0;
-  if(st&&/iPhone|iPod/.test(navigator.userAgent)){
-    var port=window.matchMedia('(orientation: portrait)').matches;
-    var full=port?Math.max(screen.height,screen.width):Math.min(screen.height,screen.width);
-    if(full>Math.min(window.innerHeight,document.documentElement.clientHeight)+1)h=full;
-  }
-  if(h)document.documentElement.style.setProperty('--app-h',h+'px'); else document.documentElement.style.removeProperty('--app-h');
+/* ---------- iPhone home-screen app: fill the whole screen ----------
+   Two WebKit quirks leave a dead band at the bottom of a home-screen app:
+   1. After the keyboard has been open once, the page height can stay shrunk. Hiding and re-showing a
+      full-height element makes WebKit measure again (heal).
+   2. Percentage and fixed heights can stop short of the screen by the height of the status bar. If the
+      page is still short after healing, size the root box to the real screen height (fitH).
+   "Fill screen bottom" in Settings turns step 2 off on this device if it ever misbehaves. */
+function fullH(){
+  if(window.navigator.standalone!==true||!/iPhone|iPod/.test(navigator.userAgent))return 0;
+  return window.matchMedia('(orientation: portrait)').matches?Math.max(screen.height,screen.width):Math.min(screen.height,screen.width);
 }
-fitH(); window.addEventListener('resize',fitH); window.addEventListener('orientationchange',function(){setTimeout(fitH,250)});
+function fillOn(){try{return localStorage.getItem('glance.fill')!=='0'}catch(e){return true}}
+function fitH(){
+  var ex=fullH(), st=document.documentElement.style;
+  if(fillOn()&&ex&&ex-window.innerHeight>4)st.setProperty('--app-h',ex+'px'); else st.removeProperty('--app-h');
+}
+var healDead=false;
+function heal(){
+  var ex=fullH(), before=window.innerHeight;
+  if(healDead||!ex||ex-before<=4)return;
+  var a=document.activeElement; if(a&&/INPUT|SELECT|TEXTAREA/.test(a.tagName))return; // keyboard is up
+  var root=$('root'), ids=['weekScroll','dayScroll','agenda','settings'], tops=ids.map(function(id){return $(id).scrollTop});
+  root.style.display='none'; void root.offsetHeight; root.style.display='';
+  ids.forEach(function(id,i){$(id).scrollTop=tops[i]});
+  setTimeout(function(){if(window.innerHeight-before<=4)healDead=true},200); // didn't help: stop trying this session
+}
+function settle(){heal();setTimeout(fitH,80)}
+fitH();
+window.addEventListener('resize',fitH);
+window.addEventListener('orientationchange',function(){setTimeout(settle,250)});
+window.addEventListener('pageshow',function(){setTimeout(settle,120)});
+document.addEventListener('focusout',function(){setTimeout(settle,180)});
 
 /* ---------- Settings ---------- */
 var DEF={mode:'auto',accent:'#5b8cff',glass:60,radius:22,weekStart:0,h24:false,winStart:7,winEnd:23,updatedAt:0,
@@ -824,7 +853,7 @@ function renderSettings(){
     '<div class="line"><span>Time</span>'+seg('h24',[['false','12 hour'],['true','24 hour']],S.h24)+'</div>'+
     '<div class="line"><span>Free time</span><span class="win"><select id="w0" aria-label="From">'+hourOpts(S.winStart,0,22)+'</select> to <select id="w1" aria-label="To">'+hourOpts(S.winEnd,1,24)+'</select></span></div>'+
     '</div></div>';
-  h+='<div class="sec"><h4>This device</h4><div class="box"><button class="act" id="refNow">Refresh now</button><button class="act danger" id="lockNow">Lock this device</button></div>'+
+  h+='<div class="sec"><h4>This device</h4><div class="box">'+(fullH()?'<div class="line"><span>Fill screen bottom</span>'+seg('fill',[['1','On'],['0','Off']],fillOn()?'1':'0')+'</div>':'')+'<button class="act" id="refNow">Refresh now</button><button class="act danger" id="lockNow">Lock this device</button></div>'+
     '<p class="hint">'+(lastFetch?'Calendar updated '+new Date(lastFetch).toLocaleString([], {month:'short',day:'numeric',hour:'numeric',minute:'2-digit'})+'. ':'')+
     (synced===true?'Settings sync across your devices.':synced===false?'Settings are saved on this device only (Supabase isn\'t connected).':'')+'</p></div>';
   $('settings').innerHTML=h;
@@ -837,7 +866,9 @@ $('settings').addEventListener('click',function(ev){
   if(t.id==='lockNow'){closeSheets();KEY='';lsDel('glance.key');lsDel('glance.events');EV=[];lastFetch=0;marksV++;return lock('')}
   if(t.id==='addType'){S.types.push({id:'t'+Date.now(),name:'New type',color:'#64d2ff',words:[]});return changed(true)}
   if((b=t.closest('[data-seg]'))&&t.dataset.v!==undefined){
-    var k=b.dataset.seg,v=t.dataset.v; S[k]=k==='mode'?v:k==='h24'?v==='true':+v; wk=null; return changed(true);
+    var k=b.dataset.seg,v=t.dataset.v;
+    if(k==='fill'){try{localStorage.setItem('glance.fill',v)}catch(e){} fitH(); return renderSettings()}
+    S[k]=k==='mode'?v:k==='h24'?v==='true':+v; wk=null; return changed(true);
   }
   if(t.dataset.accent){S.accent=t.dataset.accent;return changed(true)}
   var row=t.closest('.type'); if(!row)return; var i=+row.dataset.i;
@@ -878,6 +909,7 @@ if(KEY)start(); else{render();lock('')}
 setInterval(function(){if(!document.hidden)refresh(true)},5*60*1000);
 document.addEventListener('visibilitychange',function(){
   if(document.hidden)return;
+  settle();
   if(!same(today,sod(new Date()))){sel=sod(new Date());wk=null}
   if(Date.now()-lastFetch>60*1000){refresh(true);pullSettings()} else render();
 });

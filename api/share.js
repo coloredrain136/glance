@@ -6,7 +6,8 @@
 //
 //   200 { v:1, app:'glance', name, tz, known_through, items:[{ title, start, end, all_day, kind }] }
 //     start/end: local wall time "YYYY-MM-DDTHH:MM" in tz, or "YYYY-MM-DD" for all-day (end not included)
-//     kind: work = can't move · plan = could be skipped · note = a marker, never busy
+//     kind: work / plan = busy (anything on the calendar is fixed; work also means a job shift)
+//           note = a day note like payday, never busy
 //     known_through: last date the schedule is filled in, or null if the whole range is
 //   401 wrong key · 403 sharing turned off · 503 not set up
 const G = require('./_lib/glance');
@@ -46,13 +47,12 @@ module.exports = async (req, res) => {
     let lastOneOff = '';
     for (const ev of lists.flat()) {
       const ty = G.typeOf(types, ev.title);
-      if (ty && ty.show === 'hide') continue;
-      let kind = G.tgOf(ty);
-      if (kind === 'free') continue;
-      if (ev.allDay && kind !== 'work') kind = 'note'; // birthdays and reminders don't block a day
+      // Everything on the calendar blocks its time. Day notes (paydays) don't.
+      // Hidden colors still block, but go out as "Busy" so their titles stay private.
+      const kind = ty && ty.show === 'note' ? 'note' : (G.tgOf(ty) === 'work' ? 'work' : 'plan');
       const start = ev.allDay ? ev.start : G.wall(ev.start);
       const end = ev.allDay ? ev.end : G.wall(ev.end);
-      items.push({ title: ev.title, start, end, all_day: ev.allDay, kind });
+      items.push({ title: ty && ty.show === 'hide' ? 'Busy' : ev.title, start, end, all_day: ev.allDay, kind });
       if (kind === 'work' && !ev.repeats) {
         const lastDay = ev.allDay ? addDays(end, -1) : (end.slice(11) === '00:00' ? addDays(end.slice(0, 10), -1) : end.slice(0, 10));
         if (lastDay > lastOneOff) lastOneOff = lastDay;

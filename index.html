@@ -309,7 +309,6 @@ button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid 
 .tl .who.me{color:var(--me)}.tl .who.them{color:var(--them)}
 .tl .lane{position:relative;height:9px;border-radius:5px;background:color-mix(in srgb,var(--ink) 7%,transparent);overflow:hidden}
 .tl .lane i{position:absolute;top:0;bottom:0;border-radius:4px;background:var(--c)}
-.tl .lane i.plan{background:repeating-linear-gradient(135deg,var(--c) 0 3px,color-mix(in srgb,var(--c) 30%,transparent) 3px 6px)}
 .tl .lane i.sleep{background:repeating-linear-gradient(135deg,color-mix(in srgb,var(--ink) 40%,transparent) 0 2px,transparent 2px 5px)}
 .tl .band{position:absolute;top:-3px;bottom:-3px;border-radius:6px;background:color-mix(in srgb,var(--both) 30%,var(--bg));box-shadow:inset 0 0 0 1.5px color-mix(in srgb,var(--both) 70%,transparent);pointer-events:none}
 .tl .bands{position:relative;align-self:stretch;pointer-events:none}
@@ -333,8 +332,6 @@ button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid 
 .tgrow .len{padding-top:1px;font:600 15px var(--display);color:var(--ink-2);font-variant-numeric:tabular-nums;white-space:nowrap}
 .tgrow.k-full{background:color-mix(in srgb,var(--both) 13%,var(--card));border-color:color-mix(in srgb,var(--both) 40%,transparent)}
 .tgrow.k-full .wh b{color:color-mix(in srgb,var(--both) 75%,var(--ink))}
-.tgrow.k-maybe{background:transparent;box-shadow:none;border-style:dashed;border-color:var(--hair)}
-.tgrow.k-maybe .wh b{color:var(--ink-2)}
 .tgrow.today .dt b{color:var(--accent)}
 .tgnote{margin-top:var(--sp-5);padding:var(--sp-4);border-radius:var(--r);border:1.5px dashed var(--hair);color:var(--ink-2);font-size:14px;line-height:1.45;text-align:center}
 .tgnote b{display:block;font:700 18px var(--display);color:var(--ink);margin-bottom:4px}
@@ -349,13 +346,12 @@ button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid 
 .tgd .slot{display:flex;justify-content:space-between;gap:var(--sp-3);padding:10px 14px;border-radius:var(--r-sm);font-weight:600;font-variant-numeric:tabular-nums;
   background:color-mix(in srgb,var(--both) 14%,var(--card));border:1px solid color-mix(in srgb,var(--both) 40%,transparent)}
 .tgd .slot span{color:var(--ink-2);font-weight:500}
-.tgd .skip{font-size:14px;color:var(--ink-2);margin:-4px 2px var(--sp-4);line-height:1.45}
 .tgd .cols{display:grid;grid-template-columns:1fr 1fr;gap:var(--sp-3)}
 .tgd .col h5{margin:0 0 6px;font-size:13px;font-weight:700;letter-spacing:.03em;text-transform:uppercase}
 .tgd .col.me h5{color:var(--me)}.tgd .col.them h5{color:var(--them)}
 .tgd .it{padding:7px 0;border-top:1px solid var(--hair);font-size:14px;line-height:1.3}
 .tgd .it small{display:block;color:var(--ink-3);font-size:12.5px;font-variant-numeric:tabular-nums}
-.tgd .it.work b{font-weight:700}.tgd .it.note{color:var(--ink-2)}
+.tgd .it.busy b{font-weight:600}.tgd .it.note{color:var(--ink-2)}
 .tgd .it.empty{color:var(--ink-3)}
 .tgd .jump{margin-top:var(--sp-4)}
 
@@ -532,7 +528,7 @@ window.addEventListener('pageshow',function(){setTimeout(settle,120)});
 document.addEventListener('focusout',function(){setTimeout(settle,180)});
 
 /* ---------- Settings ---------- */
-var VERSION='glance-6';
+var VERSION='glance-7';
 var DEF={v:3,mode:'auto',accent:'#5b8cff',glass:60,radius:22,weekStart:0,h24:false,winStart:7,winEnd:23,updatedAt:0,
   // Together tab: your name as Irina sees it, sharing on/off, look-ahead in weeks, shortest hang in hours,
   // hang hours, the hour she's up again after a night shift (0 = off), how far ahead your schedule is set
@@ -804,17 +800,17 @@ function evCards(P){ // compact tinted cards for one day (week rows + month agen
   P.items.forEach(function(it){
     if(it.free){
       var hrs=(it.b-it.a)/36e5;
-      h+='<span class="wgap'+(it.past?' past':'')+(it.live?' now':'')+'" style="--h:'+Math.round(Math.min(84,18+hrs*9))+'px">'+(it.live?'Free now, until '+fS(it.b,true):'Free '+fSRange(it.a,it.b))+'</span>';
+      h+='<span class="wgap'+(it.past?' past':'')+(it.live?' now':'')+'" style="--h:'+Math.round(Math.min(84,18+hrs*9))+'px">'+(it.live?'Free Now, Until '+fS(it.b,true):'Free '+fSRange(it.a,it.b))+'</span>';
       return;
     }
     var e=it.e;
     var when=e.s<E.a?'until '+fS(e.e,true):(e.e>E.b?'from '+fS(e.s,true):(e.s===e.e?fS(e.s,true):fSRange(e.s,e.e)));
     h+='<button class="ev'+(P.isToday&&e.e<=now?' past':'')+(e.id===P.nextId?' next':'')+'" data-id="'+esc(e.id)+'" style="--c:'+colorOf(e)+'"><span class="t">'+esc(e.title)+'</span><span class="w">'+when+'</span></button>';
   });
-  if(!E.timed.length)h+='<span class="none">'+(E.all.length?'Nothing timed':(lastFetch||notice?'Free all day':'Loading…'))+'</span>';
+  if(!E.timed.length)h+='<span class="none">'+(E.all.length?'Nothing Timed':(lastFetch||notice?'Free All Day':'Loading…'))+'</span>';
   return h;
 }
-function freeText(P,rich){return P.past?'':(P.E.timed.length?(P.freeMs?fDur(P.freeMs)+(rich?' <em>free</em>':' free'):'Full'):'')}
+function freeText(P,rich){return P.past?'':(P.E.timed.length?(P.freeMs?fDur(P.freeMs)+(rich?' <em>Free</em>':' Free'):'Full'):'')}
 
 function renderWeek(dir){
   var ws=weekStart(sel), h='';
@@ -833,19 +829,19 @@ function renderDay(dir){
   var P=plan(sel), E=P.E, items=P.items, freeMs=P.freeMs, nextId=P.nextId, isToday=P.isToday, now=Date.now(), h='';
   var n=E.timed.length;
   h+='<div class="dayhead"><div><h2>'+(isToday?'Today':WD[sel.getDay()])+'</h2><div class="date">'+(isToday?WD[sel.getDay()]+', ':'')+MO[sel.getMonth()]+' '+sel.getDate()+'</div></div>';
-  if(n)h+='<div class="verdict"><b>'+(freeMs?fDur(freeMs)+' free':'No free time')+'</b>'+n+(n===1?' event':' events')+'</div>';
+  if(n)h+='<div class="verdict"><b>'+(freeMs?fDur(freeMs)+' Free':'No Free Time')+'</b>'+n+(n===1?' Event':' Events')+'</div>';
   h+='</div>';
   if(notice)h+='<div class="notice">'+esc(notice)+'</div>';
   if(E.all.length||E.notes.length)h+='<div class="allday">'+E.all.concat(E.notes).map(function(e){return '<button class="chip'+(E.notes.indexOf(e)>-1?' note':'')+'" data-id="'+esc(e.id)+'" style="--c:'+colorOf(e)+'"><i></i>'+esc(e.title)+'</button>'}).join('')+'</div>';
 
   if(!n){
-    h+='<div class="open"><b>'+(E.all.length?'Nothing timed':'Free all day')+'</b>'+(lastFetch||notice?'No events on the calendar.':'Loading your calendar…')+'</div>';
+    h+='<div class="open"><b>'+(E.all.length?'Nothing Timed':'Free All Day')+'</b>'+(lastFetch||notice?'No events on the calendar.':'Loading your calendar…')+'</div>';
   }else{
     h+='<div class="stack">';
     items.forEach(function(it){
       if(it.free){
         var hrs=(it.b-it.a)/36e5;
-        h+='<div class="free'+(it.past?' past':'')+(it.live?' now':'')+'" style="--h:'+Math.round(Math.min(132,28+hrs*20))+'px"><span><b>'+(it.live?'Free now':'Free')+'</b>'+(it.live?'until '+fT(it.b):fRange(it.a,it.b))+'</span><span class="d">'+fDur(it.b-it.a)+'</span></div>';
+        h+='<div class="free'+(it.past?' past':'')+(it.live?' now':'')+'" style="--h:'+Math.round(Math.min(132,28+hrs*20))+'px"><span><b>'+(it.live?'Free Now':'Free')+'</b>'+(it.live?'until '+fT(it.b):fRange(it.a,it.b))+'</span><span class="d">'+fDur(it.b-it.a)+'</span></div>';
         return;
       }
       var e=it.e, c=colorOf(e), past=e.e<=now, nx=e.id===nextId, live=nx&&e.s<=now;
@@ -875,31 +871,32 @@ function renderMonth(dir){
   if(lastView==='month'&&lastSel&&mkey(lastSel)!==mkey(sel))anim(g,(dir||(sel>lastSel?1:-1))>0?'slide-l':'slide-r');
   // The picked day's events, under the grid
   var P=plan(sel), n=P.E.timed.length+P.E.all.length, fr=freeText(P);
-  var sub=(n?n+(n===1?' event':' events'):'Nothing scheduled')+(fr?', '+fr:'');
+  var sub=(n?n+(n===1?' Event':' Events'):'Nothing Scheduled')+(fr?' · '+fr:'');
   var body=$('agendaBody');
   body.innerHTML=(notice?'<div class="notice">'+esc(notice)+'</div>':'')+
     '<div class="ahead"><div><h2>'+(P.isToday?'Today':WD[sel.getDay()]+', '+MO[sel.getMonth()].slice(0,3)+' '+sel.getDate())+'</h2><div class="sub">'+sub+'</div></div>'+
-    '<button class="pill glass" id="openDay">Open day</button></div><div class="wr">'+evCards(P)+'</div>';
+    '<button class="pill glass" id="openDay">Open Day</button></div><div class="wr">'+evCards(P)+'</div>';
   if(lastView!=='month'||!lastSel||!same(lastSel,sel)){anim(body,'fade');$('agenda').scrollTop=0}
 }
 
 /*TOGETHER-CORE-START*/
-/* Together: when are both people free? Pure functions, no screen code.
+/* Together (core v2): when are both people free? Pure functions, no screen code.
    Glance and Nova use this exact block, so both apps always agree.
    Times are local (both phones are in the same time zone).
 
    Item: {s, e (ms), allDay, kind:'work'|'plan'|'note', title, who:'me'|'them'}
-     work = can't move · plan = could be skipped · note = never busy
+     Anything already on a calendar is fixed: work and plan both block their time.
+     note = a marker (payday), never busy. work also triggers the night-shift sleep rule.
    TG.plan({items, from, days, now, through:{me,them}, opt:{h0,h1,minH,sleep}})
      h0/h1   hang hours (9 and 23 = 9am to 11pm)
      minH    shortest time that counts as a hang, in hours
      sleep   after an overnight shift ends in the morning, busy until this hour (0 = off)
      through last date ('YYYY-MM-DD') each person's schedule is filled in, or null
    Each day comes back as one of:
-     full    neither works during hang hours ("day off together")
+     full    nothing on either calendar during hang hours ("day off together")
      free    a stretch of at least minH with nothing in the way
-     maybe   free only if someone skips a flexible plan (skip lists them)
      none    nothing long enough
+   (v2: "maybe" days are gone. counts.maybe stays 0 and D.skip/D.plans stay empty so older screens still work.)
      unknown past someone's filled-in schedule */
 var TG = (function () {
   var MIN = 6e4, HOUR = 36e5;
@@ -965,43 +962,29 @@ var TG = (function () {
       }
       if (W1 - W0 < minMs) continue;
 
-      var hard = [], soft = [];
+      var busy = [];
       items.forEach(function (x) {
         var s = x.allDay ? sod(x.s) : x.s, e = x.allDay ? sod(x.e) : x.e;
-        if (x.allDay && x.kind !== 'work') return;        // all-day plans are reminders, not busy time
         if (e > day && s < dEnd) {
-          var blk = [Math.max(s, day), Math.min(e, dEnd), x];
-          (x.kind === 'work' ? hard : soft).push(blk);
+          busy.push([Math.max(s, day), Math.min(e, dEnd)]);
           if (e > full0 && s < full1) D.busy[x.who].push({ a: Math.max(s, full0), b: Math.min(e, full1), kind: x.kind, title: x.title });
         }
-        // An overnight shift that ended this morning: asleep until the sleep hour
+        // An overnight work shift that ended this morning: asleep until the sleep hour
         if (sleep && x.kind === 'work' && !x.allDay && s < day && e > day && e - s >= 6 * HOUR && new Date(e).getHours() < 12) {
           var wake = at(day, sleep);
           if (wake > e) {
-            hard.push([e, wake, x]);
+            busy.push([e, wake]);
             if (wake > full0) D.busy[x.who].push({ a: Math.max(e, full0), b: Math.min(wake, full1), kind: 'sleep', title: 'Sleeping after ' + x.title });
           }
         }
       });
 
-      var hardFree = minus(W0, W1, hard).filter(function (g) { return g[1] - g[0] >= minMs; });
-      if (!hardFree.length) continue;
-
-      var inWin = function (b) { return b[1] > W0 && b[0] < W1; };
-      if (full1 - full0 >= 8 * HOUR && W0 === full0 && !hard.some(inWin)) {
+      var open = minus(W0, W1, busy).filter(function (g) { return g[1] - g[0] >= minMs; });
+      if (!open.length) continue;
+      if (full1 - full0 >= 8 * HOUR && W0 === full0 && open.length === 1 && open[0][0] === W0 && open[0][1] === W1) {
         D.kind = 'full'; D.segs = [[W0, W1]];
-        D.plans = soft.filter(inWin).map(function (b) { return b[2]; });
       } else {
-        var softFree = [];
-        hardFree.forEach(function (g) {
-          minus(g[0], g[1], soft).forEach(function (f) { if (f[1] - f[0] >= minMs) softFree.push(f); });
-        });
-        if (softFree.length) { D.kind = 'free'; D.segs = softFree; }
-        else {
-          var g = longest(hardFree);
-          D.kind = 'maybe'; D.segs = [g];
-          D.skip = soft.filter(function (b) { return b[1] > g[0] && b[0] < g[1]; }).map(function (b) { return b[2]; });
-        }
+        D.kind = 'free'; D.segs = open;
       }
       var best = D.kind === 'full' ? D.segs[0] : longest(D.segs);
       D.a = best[0]; D.b = best[1]; D.len = best[1] - best[0];
@@ -1035,16 +1018,19 @@ function fetchPartner(force){
     ptState=e.server?'error':'offline'; ptMsg=e.server?e.message:'You\'re offline.';
   }).then(function(){ptBusy=false;if(!busy)$('spin').classList.remove('on');if(view==='together')render()});
 }
-function tgKind(e){ // what one of my events means for planning together
+// Anything already on my calendar is fixed and blocks its time. Only day notes (paydays) don't.
+// "work" is kept for work-looking colors so the schedule-is-known check can find one-off shifts.
+function tgKind(e){
   var t=typeOf(e);
-  if(t&&t.show==='hide')return null;
-  var k=t?(t.show==='note'?'note':(t.tg||tgGuess(t))):'plan';
-  if(k==='free')return null;
-  return e.allDay&&k!=='work'?'note':k;
+  if(t&&t.show==='note')return 'note';
+  return t&&(t.tg||tgGuess(t))==='work'?'work':'plan';
 }
 function myItems(){
   var out=[];
-  EV.forEach(function(e){var k=tgKind(e);if(k)out.push({s:e.s,e:e.e,allDay:e.allDay,kind:k,title:e.title,who:'me',rep:e.repeats})});
+  EV.forEach(function(e){
+    var t=typeOf(e);
+    out.push({s:e.s,e:e.e,allDay:e.allDay,kind:tgKind(e),title:t&&t.show==='hide'?'Busy':e.title,who:'me',rep:e.repeats});
+  });
   return out;
 }
 // How far ahead my schedule is filled in: weekly repeats go on forever, so use the last one-off work shift
@@ -1067,6 +1053,10 @@ function tgPlan(){
   TGR.through=thr;
   return TGR;
 }
+var SMALL={a:1,an:1,the:1,of:1,and:1,or:1,to:1,'in':1,on:1,at:1,'for':1,with:1};
+function tc(str){ // Title Case for labels: "free most of the day" -> "Free Most of the Day"
+  return String(str).split(' ').map(function(w,i){var l=w.toLowerCase();return i&&SMALL[l]?l:w.charAt(0).toUpperCase()+w.slice(1)}).join(' ');
+}
 function hrLabel(h){if(S.h24)return ('0'+(h%24)).slice(-2);h=h%24;return (h%12||12)+(h<12?'a':'p')}
 function tlHtml(D,big){
   var d=new Date(D.day), a=new Date(d.getFullYear(),d.getMonth(),d.getDate(),S.tgH0).getTime();
@@ -1079,7 +1069,7 @@ function tlHtml(D,big){
     '<span class="who me">'+esc(S.myName||'Joe').charAt(0)+'</span>'+lane('me','var(--me)')+
     '<span class="who them">'+esc(pName()).charAt(0)+'</span>'+lane('them','var(--them)')+
     '<span class="bands">'+(D.kind==='none'||D.kind==='unknown'?'':D.segs.map(function(g){
-      return '<i class="band" style="left:'+pc(g[0])+';width:'+wd(g[0],g[1])+(D.kind==='maybe'?';opacity:.55':'')+'"></i>'}).join(''))+'</span>';
+      return '<i class="band" style="left:'+pc(g[0])+';width:'+wd(g[0],g[1])+'"></i>'}).join(''))+'</span>';
   if(big){
     h+='<span class="ticks">';
     for(var hr=S.tgH0;hr<=S.tgH1;hr++){
@@ -1092,14 +1082,6 @@ function tlHtml(D,big){
   }
   return h+'</span>';
 }
-function whoSkips(list){
-  var me=[],th=[];
-  list.forEach(function(x){var t=x.title+' '+fS(x.s,true);(x.who==='me'?me:th).push(t)});
-  var out=[];
-  if(me.length)out.push('you skip '+me.join(', '));
-  if(th.length)out.push(pName()+' skips '+th.join(', '));
-  return out.join(' and ');
-}
 function relDay(D){
   var n=Math.round((D.day-today.getTime())/DAY);
   if(n===0)return D.a>=new Date(today.getFullYear(),today.getMonth(),today.getDate(),17).getTime()?'Tonight':'Today';
@@ -1109,14 +1091,14 @@ function relDay(D){
 function inDays(D){var n=Math.round((D.day-today.getTime())/DAY);return n<2?'':(n<7?'in '+n+' days':n<14?'next week':'in '+Math.floor(n/7)+' weeks')}
 function longDate(ms){var d=new Date(ms);return WD[d.getDay()].slice(0,3)+', '+MO[d.getMonth()].slice(0,3)+' '+d.getDate()}
 function ago(ms){var m=Math.round((Date.now()-ms)/MIN);return m<1?'just now':m<60?m+'m ago':m<1440?Math.round(m/60)+'h ago':Math.round(m/1440)+'d ago'}
-function slotText(D){return D.kind==='full'?'All day':fSRange(D.a,D.b)}
+function slotText(D){return D.kind==='full'?'All Day':fSRange(D.a,D.b)}
 
 function tgSetup(){
   var st=ptState, nm='Irina';
-  if(!st||st==='loading')return '<div class="tgnote"><b>Loading '+nm+'\'s schedule…</b>This takes a second the first time.</div>';
+  if(!st||st==='loading')return '<div class="tgnote"><b>Loading '+nm+'\'s Schedule…</b>This takes a second the first time.</div>';
   if(st==='not_setup')return '<div class="tgnote"><b>Connect Nova</b>Glance needs two settings in Vercel to read '+nm+'\'s schedule: <code>PARTNER_URL</code> (Nova\'s web address) and <code>SHARE_KEY</code> (the same secret in both apps). Add them, then Redeploy.</div>';
-  if(st==='not_ready')return '<div class="tgnote"><b>Waiting on Nova</b>Glance is ready. Once Nova gets its Together update, '+nm+'\'s schedule shows up here.<br><br><span style="color:var(--ink-3)">'+esc(ptMsg)+'</span></div>';
-  return '<div class="tgnote"><b>Couldn\'t load '+nm+'\'s schedule</b>'+esc(ptMsg||'Something went wrong.')+'<br><br>Pull down to try again.</div>';
+  if(st==='not_ready')return '<div class="tgnote"><b>Waiting On Nova</b>Glance is ready. Once Nova gets its Together update, '+nm+'\'s schedule shows up here.<br><br><span style="color:var(--ink-3)">'+esc(ptMsg)+'</span></div>';
+  return '<div class="tgnote"><b>Couldn\'t Load '+nm+'\'s Schedule</b>'+esc(ptMsg||'Something went wrong.')+'<br><br>Pull down to try again.</div>';
 }
 
 function renderTogether(){
@@ -1128,34 +1110,31 @@ function renderTogether(){
   if(notice)h+='<div class="notice">'+esc(notice)+'</div>';
   var R=tgPlan(), N=R.next, nm=esc(pName());
   if(N){
-    h+='<button class="hero" data-k="'+N.key+'"><span class="eye"><i></i>Next time you\'re both free</span>'+
+    h+='<button class="hero" data-k="'+N.key+'"><span class="eye"><i></i>Next Time You\'re Both Free</span>'+
       '<span class="hd"><b>'+relDay(N)+'</b><span>'+longDate(N.day)+(inDays(N)?' · '+inDays(N):'')+'</span></span>'+
-      '<span class="hl">'+(N.kind==='full'?'<b>Day off together</b> · '+slotText(N):'<b>'+slotText(N)+'</b> · '+fDur(N.len)+' together')+'</span>'+tlHtml(N,true)+'</button>';
+      '<span class="hl">'+(N.kind==='full'?'<b>Day Off Together</b> · '+slotText(N):'<b>'+slotText(N)+'</b> · '+fDur(N.len)+' Together')+'</span>'+tlHtml(N,true)+'</button>';
   }else{
-    var mb=R.days.filter(function(d){return d.kind==='maybe'})[0];
-    h+='<div class="hero empty"><span class="eye"><i></i>Next time you\'re both free</span><span class="hd"><b>Nothing lines up yet</b></span>'+
-      '<span class="hl">'+(mb?'Closest: '+longDate(mb.day)+', if '+esc(whoSkips(mb.skip))+'.':'Nothing in the next '+(S.tgWeeks||4)+' weeks with '+S.tgMin+'+ hours free for both of you.')+'</span></div>';
+    h+='<div class="hero empty"><span class="eye"><i></i>Next Time You\'re Both Free</span><span class="hd"><b>Nothing Lines Up Yet</b></span>'+
+      '<span class="hl">Nothing in the next '+(S.tgWeeks||4)+' weeks with '+S.tgMin+'+ hours open on both calendars.</span></div>';
   }
   var c=R.counts, chips=[];
-  if(c.full)chips.push('<b>'+c.full+'</b> day'+(c.full>1?'s':'')+' off together');
-  if(c.free)chips.push('<b>'+c.free+'</b> free stretch'+(c.free>1?'es':''));
-  if(c.maybe)chips.push('<b>'+c.maybe+'</b> maybe');
+  if(c.full)chips.push('<b>'+c.full+'</b> Day'+(c.full>1?'s':'')+' Off Together');
+  if(c.free)chips.push('<b>'+c.free+'</b> Free Stretch'+(c.free>1?'es':''));
   if(chips.length)h+='<div class="tgsum"><span>'+chips.join('</span><span>')+'</span></div>';
 
   var wk0=weekStart(today).getTime(), curWk=null;
   R.days.forEach(function(D){
-    if(D.kind!=='full'&&D.kind!=='free'&&D.kind!=='maybe')return;
+    if(D.kind!=='full'&&D.kind!=='free')return;
     var ws=weekStart(new Date(D.day)), n=Math.round((ws.getTime()-wk0)/DAY/7);
     if(ws.getTime()!==curWk){
       curWk=ws.getTime(); var we=addD(ws,6);
-      h+='<div class="tgwk">'+(n===0?'This week':n===1?'Next week':MO[ws.getMonth()].slice(0,3)+' '+ws.getDate()+' – '+(we.getMonth()!==ws.getMonth()?MO[we.getMonth()].slice(0,3)+' ':'')+we.getDate())+'</div>';
+      h+='<div class="tgwk">'+(n===0?'This Week':n===1?'Next Week':MO[ws.getMonth()].slice(0,3)+' '+ws.getDate()+' – '+(we.getMonth()!==ws.getMonth()?MO[we.getMonth()].slice(0,3)+' ':'')+we.getDate())+'</div>';
     }
     var d=new Date(D.day), title, sub;
-    if(D.kind==='full'){title='Day off together';sub=D.plans.length?'Plans: '+D.plans.map(function(x){return (x.who==='me'?'you':pName())+' · '+x.title}).slice(0,2).join(', '):'Nothing planned'}
-    else if(D.kind==='free'){title='Free '+D.label.toLowerCase();sub=D.segs.map(function(g){return fSRange(g[0],g[1])}).join(' and ')}
-    else{title='Free '+D.label.toLowerCase()+', maybe';sub='If '+whoSkips(D.skip)}
+    if(D.kind==='full'){title='Day Off Together';sub='Nothing on either calendar, '+fSRange(D.a,D.b)}
+    else{title=tc('Free '+D.label);sub=D.segs.map(function(g){return fSRange(g[0],g[1])}).join(' and ')}
     h+='<button class="tgrow k-'+D.kind+(same(d,today)?' today':'')+'" data-k="'+D.key+'"><span class="dt"><small>'+WD[d.getDay()].slice(0,3)+'</small><b>'+d.getDate()+'</b></span>'+
-      '<span class="rt"><span class="top"><span class="wh"><b>'+esc(title)+'</b><span>'+esc(sub)+'</span></span><span class="len">'+(D.kind==='full'?'All day':fDur(D.len))+'</span></span>'+tlHtml(D,false)+'</span></button>';
+      '<span class="rt"><span class="top"><span class="wh"><b>'+esc(title)+'</b><span>'+esc(sub)+'</span></span><span class="len">'+(D.kind==='full'?'All Day':fDur(D.len))+'</span></span>'+tlHtml(D,false)+'</span></button>';
   });
   if(!curWk)h+='<div class="tgnote">No '+S.tgMin+'-hour stretches line up in the next '+(S.tgWeeks||4)+' weeks. Try a shorter hang in Settings → Together.</div>';
   var U=R.unknown, end='';
@@ -1173,23 +1152,23 @@ function renderTogether(){
 function openTgDay(k){
   if(!TGR)return; var D=TGR.days.filter(function(x){return x.key===k})[0]; if(!D)return;
   var d=new Date(D.day), a=D.day, b=addD(d,1).getTime(), nm=esc(pName());
-  var tag=D.kind==='full'?'Day off together':D.kind==='free'?'Free together':'Maybe';
-  var h='<div class="grab"></div><div class="tgd"><span class="tag" style="--c:'+(D.kind==='maybe'?'var(--ink-3)':'var(--both)')+'">'+tag+'</span>'+
+  var open=D.kind==='full'||D.kind==='free';
+  var tag=D.kind==='full'?'Day Off Together':open?'Free Together':'No Time Together';
+  var h='<div class="grab"></div><div class="tgd"><span class="tag" style="--c:'+(open?'var(--both)':'var(--ink-3)')+'">'+tag+'</span>'+
     '<h3>'+WD[d.getDay()]+', '+MO[d.getMonth()]+' '+d.getDate()+'</h3>'+tlHtml(D,true)+'<div class="slots">';
-  D.segs.forEach(function(g){h+='<div class="slot">'+(D.kind==='full'?'All day · '+fSRange(g[0],g[1]):fSRange(g[0],g[1]))+'<span>'+fDur(g[1]-g[0])+'</span></div>'});
+  D.segs.forEach(function(g){h+='<div class="slot">'+(D.kind==='full'?'All Day · '+fSRange(g[0],g[1]):fSRange(g[0],g[1]))+'<span>'+fDur(g[1]-g[0])+'</span></div>'});
   h+='</div>';
-  if(D.kind==='maybe')h+='<p class="skip">Free if '+esc(whoSkips(D.skip))+'.</p>';
   var col=function(who,label){
     var list=TGI.filter(function(x){return x.who===who&&((x.e>a&&x.s<b)||(x.s===x.e&&x.s>=a&&x.s<b))});
     list.sort(function(x,y){return (x.allDay===y.allDay?0:x.allDay?-1:1)||x.s-y.s});
     var inner=list.map(function(x){
-      var when=x.allDay?'All day':x.kind==='note'&&x.s===x.e?fS(x.s,true):(x.s<a?'until '+fS(x.e,true):x.e>b?'from '+fS(x.s,true):fSRange(x.s,x.e));
-      return '<div class="it '+x.kind+'"><small>'+when+(x.kind==='work'?' · work':x.kind==='plan'?' · flexible':'')+'</small>'+(x.kind==='work'?'<b>'+esc(x.title)+'</b>':esc(x.title))+'</div>';
+      var when=x.allDay?'All Day':x.kind==='note'&&x.s===x.e?fS(x.s,true):(x.s<a?'Until '+fS(x.e,true):x.e>b?'From '+fS(x.s,true):fSRange(x.s,x.e));
+      return '<div class="it '+(x.kind==='note'?'note':'busy')+'"><small>'+when+(x.kind==='note'?' · Day Note':'')+'</small>'+(x.kind==='note'?esc(x.title):'<b>'+esc(x.title)+'</b>')+'</div>';
     }).join('');
-    return '<div class="col '+who+'"><h5>'+label+'</h5>'+(inner||'<div class="it empty">Nothing planned</div>')+'</div>';
+    return '<div class="col '+who+'"><h5>'+label+'</h5>'+(inner||'<div class="it empty">Nothing Planned</div>')+'</div>';
   };
   h+='<div class="cols">'+col('me','You')+col('them',nm)+'</div>';
-  h+='<button class="jump" data-openday="'+D.key+'">Open my day</button></div>';
+  h+='<button class="jump" data-openday="'+D.key+'">Open My Day</button></div>';
   $('detail').innerHTML=h; openSheet('detail');
 }
 
@@ -1252,7 +1231,7 @@ function openDetail(id){
   var e=EV.filter(function(x){return x.id===id})[0]; if(!e)return;
   var t=typeOf(e), c=colorOf(e), a=new Date(e.s), b=new Date(e.e), when, sub='';
   var dl=function(d){return WD[d.getDay()]+', '+MO[d.getMonth()]+' '+d.getDate()};
-  if(e.allDay){var last=addD(b,-1);when=dl(a)+(same(a,last)?'':' – '+dl(last));sub='All day'}
+  if(e.allDay){var last=addD(b,-1);when=dl(a)+(same(a,last)?'':' – '+dl(last));sub='All Day'}
   else if(same(a,b)||e.s===e.e){when=dl(a);sub=e.s===e.e?fT(e.s):fRange(e.s,e.e)+'  ('+fDur(e.e-e.s)+')'}
   else{when=dl(a)+', '+fT(e.s);sub='to '+dl(b)+', '+fT(e.e)}
   var notes=plain(e.notes);
@@ -1277,7 +1256,7 @@ function renderPicker(){
   var h='<div class="grab"></div><div class="yr"><button data-y="-1" aria-label="Previous year"><svg viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg></button><b>'+pickY+'</b>'+
     '<button data-y="1" aria-label="Next year"><svg viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg></button></div><div class="mos">';
   for(var m=0;m<12;m++)h+='<button data-m="'+m+'" class="'+(pickY===sel.getFullYear()&&m===sel.getMonth()?'on':(pickY===today.getFullYear()&&m===today.getMonth()?'now':''))+'">'+MO[m].slice(0,3)+'</button>';
-  $('detail').innerHTML=h+'</div><button class="jump" data-jump="1">Back to today</button>';
+  $('detail').innerHTML=h+'</div><button class="jump" data-jump="1">Back to Today</button>';
 }
 $('titleBtn').onclick=function(){if(view==='together')return;pickY=sel.getFullYear();renderPicker();openSheet('detail')};
 $('detail').addEventListener('click',function(ev){
@@ -1310,40 +1289,39 @@ function renderSettings(){
     if(seen[e.title])return; seen[e.title]=1;
     var ty=typeOf(e); if(ty)(hits[ty.id]||(hits[ty.id]=[])).push(e.title); else loose.push(e.title);
   });
-  h+='<div class="sec"><h4>Event colors</h4><p class="hint" style="margin:0 4px 10px">Glance picks an event\'s color by looking for words in its title. It checks these from the top down and uses the first one that fits.</p>'+
+  h+='<div class="sec"><h4>Event Colors</h4><p class="hint" style="margin:0 4px 10px">Glance picks an event\'s color by looking for words in its title. It checks these from the top down and uses the first one that fits.</p>'+
     '<div class="box" id="types">'+S.types.map(function(t,i){
     var m=hits[t.id]||[], show=t.show||'card';
     return '<div class="type" data-i="'+i+'"><div class="a"><input type="color" value="'+esc(t.color)+'" data-f="color" aria-label="Color"><input type="text" class="nm" value="'+esc(t.name)+'" data-f="name" placeholder="Name" aria-label="Name">'+
       '<button class="mini" data-mv="-1" aria-label="Move up"'+(i===0?' disabled':'')+'>↑</button><button class="mini" data-mv="1" aria-label="Move down"'+(i===S.types.length-1?' disabled':'')+'>↓</button><button class="mini" data-del="1" aria-label="Delete">✕</button></div>'+
-      '<label class="lab">Use for titles that contain (commas between words)</label>'+
+      '<label class="lab">Titles That Contain (Commas Between Words)</label>'+
       '<input type="text" class="wds" value="'+esc((t.words||[]).join(', '))+'" data-f="words" placeholder="Gym, Bike, Run" aria-label="Title words" autocapitalize="off" autocorrect="off">'+
-      '<div class="sh"><span>Show as</span>'+seg('show',[['card','Event'],['note','Day note'],['hide','Hidden']],show)+'</div>'+
-      (show==='card'?'<div class="sh"><span>Together</span>'+seg('tg',[['work','Can\'t move'],['plan','Flexible'],['free','Ignore']],t.tg||tgGuess(t))+'</div>':'')+
-      '<div class="match'+(m.length?'':' miss')+'">'+(m.length?'Catching now: <b>'+m.slice(0,4).map(esc).join(', ')+'</b>'+(m.length>4?' and '+(m.length-4)+' more':''):'Not catching any events right now')+'</div></div>';
-  }).join('')+'<button class="act" id="addType">Add a color</button></div>'+
-    '<p class="hint">A day note is a small marker on the day instead of an event card. It doesn\'t count toward events or free time. <b>Together</b> sets how the Together tab treats it: can\'t move (work), flexible (you could skip it), or ignore. Titles with no color count as flexible.</p>'+
-    (loose.length?'<h4 style="margin:18px 4px 8px;font-size:14px;font-weight:600;color:var(--ink-2)">Titles with no color yet</h4><div class="box"><div class="unm">'+loose.slice(0,12).map(function(x){return '<button data-unm="'+esc(x)+'">'+esc(x)+'</button>'}).join('')+'</div></div>'+
+      '<div class="sh"><span>Show As</span>'+seg('show',[['card','Event'],['note','Day Note'],['hide','Hidden']],show)+'</div>'+
+      '<div class="match'+(m.length?'':' miss')+'">'+(m.length?'Catching Now: <b>'+m.slice(0,4).map(esc).join(', ')+'</b>'+(m.length>4?' and '+(m.length-4)+' more':''):'Not Catching Any Events Right Now')+'</div></div>';
+  }).join('')+'<button class="act" id="addType">Add a Color</button></div>'+
+    '<p class="hint">A day note is a small marker on the day instead of an event card. It doesn\'t count toward events or free time, and the Together tab doesn\'t treat it as busy.</p>'+
+    (loose.length?'<h4 style="margin:18px 4px 8px;font-size:14px;font-weight:600;color:var(--ink-2)">Titles With No Color Yet</h4><div class="box"><div class="unm">'+loose.slice(0,12).map(function(x){return '<button data-unm="'+esc(x)+'">'+esc(x)+'</button>'}).join('')+'</div></div>'+
       '<p class="hint">These show the color set on the event in Google Calendar. If the event has none, they use your accent color, because the calendar\'s own color doesn\'t come through. Tap a title to give it a color here.</p>':'')+'</div>';
-  var stTxt=ptState==='ok'||(!ptState&&PT)?'Connected to Nova'+(PT?' · '+ago(PT.at):''):ptState==='not_setup'?'Not set up yet':ptState==='not_ready'?'Waiting on Nova\'s update':ptState?'Can\'t reach Nova right now':'Checking…';
+  var stTxt=ptState==='ok'||(!ptState&&PT)?'Connected to Nova'+(PT?' · '+ago(PT.at):''):ptState==='not_setup'?'Not Set Up Yet':ptState==='not_ready'?'Waiting on Nova\'s Update':ptState?'Can\'t Reach Nova Right Now':'Checking…';
   var slOpts=[[0,'Off'],[11,'11 AM'],[12,'Noon'],[13,'1 PM'],[14,'2 PM'],[15,'3 PM'],[16,'4 PM']].map(function(o){return '<option value="'+o[0]+'"'+(o[0]===S.tgSleep?' selected':'')+'>'+o[1]+'</option>'}).join('');
   h+='<div class="sec"><h4>Together</h4><div class="box">'+
-    '<div class="line"><span>'+esc(pName())+'\'s schedule</span><span style="font-size:14px;color:var(--ink-2);text-align:right">'+stTxt+'</span></div>'+
-    '<div class="line"><span>Share mine with '+esc(pName())+'</span>'+seg('share',[['1','On'],['0','Off']],S.share===false?'0':'1')+'</div>'+
-    '<div class="line"><span>Your name</span><input type="text" id="myName" value="'+esc(S.myName||'Joe')+'" maxlength="30" style="width:130px;text-align:right" aria-label="Your name"></div>'+
-    '<div class="line"><span>Look ahead</span>'+seg('tgWeeks',[[2,'2 wk'],[4,'4 wk'],[6,'6 wk']],S.tgWeeks)+'</div>'+
-    '<div class="line"><span>Shortest hang</span>'+seg('tgMin',[[2,'2h'],[3,'3h'],[4,'4h']],S.tgMin)+'</div>'+
-    '<div class="line"><span>Hang hours</span><span class="win"><select id="tg0" aria-label="From">'+hourOpts(S.tgH0,5,20)+'</select> to <select id="tg1" aria-label="To">'+hourOpts(S.tgH1,12,24)+'</select></span></div>'+
-    '<div class="line"><span>Up after a night shift</span><select id="tgSl" aria-label="Up after a night shift">'+slOpts+'</select></div>'+
-    '<div class="line"><span>My schedule is known</span>'+seg('tgKnown',[['auto','Auto'],['all','Always']],S.tgKnown||'auto')+'</div>'+
-    '</div><p class="hint">Work blocks time. Flexible plans like the gym show up as "maybe" days. After an overnight shift, '+esc(pName())+' counts as asleep until the time above. '+
-    '<b>My schedule is known:</b> Auto stops at your last one-off work shift (Home Depot shifts get posted a few weeks out), so days past that aren\'t shown as free by mistake. '+
+    '<div class="line"><span>'+esc(pName())+'\'s Schedule</span><span style="font-size:14px;color:var(--ink-2);text-align:right">'+stTxt+'</span></div>'+
+    '<div class="line"><span>Share Mine With '+esc(pName())+'</span>'+seg('share',[['1','On'],['0','Off']],S.share===false?'0':'1')+'</div>'+
+    '<div class="line"><span>Your Name</span><input type="text" id="myName" value="'+esc(S.myName||'Joe')+'" maxlength="30" style="width:130px;text-align:right" aria-label="Your name"></div>'+
+    '<div class="line"><span>Look Ahead</span>'+seg('tgWeeks',[[2,'2 Wk'],[4,'4 Wk'],[6,'6 Wk']],S.tgWeeks)+'</div>'+
+    '<div class="line"><span>Shortest Hang</span>'+seg('tgMin',[[2,'2h'],[3,'3h'],[4,'4h']],S.tgMin)+'</div>'+
+    '<div class="line"><span>Hang Hours</span><span class="win"><select id="tg0" aria-label="From">'+hourOpts(S.tgH0,5,20)+'</select> to <select id="tg1" aria-label="To">'+hourOpts(S.tgH1,12,24)+'</select></span></div>'+
+    '<div class="line"><span>Up After a Night Shift</span><select id="tgSl" aria-label="Up after a night shift">'+slOpts+'</select></div>'+
+    '<div class="line"><span>My Schedule Is Known</span>'+seg('tgKnown',[['auto','Auto'],['all','Always']],S.tgKnown||'auto')+'</div>'+
+    '</div><p class="hint">Anything already on either calendar blocks that time, so the tab only shows time neither of you has scheduled yet. Day notes like paydays don\'t block. After an overnight work shift, '+esc(pName())+' counts as asleep until the time above. '+
+    '<b>My Schedule Is Known:</b> Auto stops at your last one-off work shift (Home Depot shifts get posted a few weeks out), so days past that aren\'t shown as free by mistake. '+
     (ptState&&ptState!=='ok'&&ptMsg?'<br><br>'+esc(ptMsg):'')+'</p></div>';
   h+='<div class="sec"><h4>Calendar</h4><div class="box">'+
-    '<div class="line"><span>Week starts</span>'+seg('weekStart',[[0,'Sunday'],[1,'Monday']],S.weekStart)+'</div>'+
-    '<div class="line"><span>Time</span>'+seg('h24',[['false','12 hour'],['true','24 hour']],S.h24)+'</div>'+
-    '<div class="line"><span>Free time</span><span class="win"><select id="w0" aria-label="From">'+hourOpts(S.winStart,0,22)+'</select> to <select id="w1" aria-label="To">'+hourOpts(S.winEnd,1,24)+'</select></span></div>'+
+    '<div class="line"><span>Week Starts</span>'+seg('weekStart',[[0,'Sunday'],[1,'Monday']],S.weekStart)+'</div>'+
+    '<div class="line"><span>Time</span>'+seg('h24',[['false','12 Hour'],['true','24 Hour']],S.h24)+'</div>'+
+    '<div class="line"><span>Free Time</span><span class="win"><select id="w0" aria-label="From">'+hourOpts(S.winStart,0,22)+'</select> to <select id="w1" aria-label="To">'+hourOpts(S.winEnd,1,24)+'</select></span></div>'+
     '</div></div>';
-  h+='<div class="sec"><h4>This device</h4><div class="box">'+(fullH()?'<div class="line"><span>Fill screen bottom</span>'+seg('fill',[['1','On'],['0','Off']],fillOn()?'1':'0')+'</div>':'')+'<button class="act" id="refNow">Refresh now</button><button class="act danger" id="lockNow">Lock this device</button></div>'+
+  h+='<div class="sec"><h4>This Device</h4><div class="box">'+(fullH()?'<div class="line"><span>Fill Screen Bottom</span>'+seg('fill',[['1','On'],['0','Off']],fillOn()?'1':'0')+'</div>':'')+'<button class="act" id="refNow">Refresh Now</button><button class="act danger" id="lockNow">Lock This Device</button></div>'+
     '<p class="hint">'+(lastFetch?'Calendar updated '+new Date(lastFetch).toLocaleString([], {month:'short',day:'numeric',hour:'numeric',minute:'2-digit'})+'. ':'')+
     (synced===true?'Settings sync across your devices.':synced===false?'Settings are saved on this device only (Supabase isn\'t connected).':'')+' '+VERSION+'</p></div>';
   $('settings').innerHTML=h;

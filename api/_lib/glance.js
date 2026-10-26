@@ -144,11 +144,13 @@ function typeOf(types, title) {
   return null;
 }
 
-// Older saved colors have no "tg" yet: guess from the name, the same way the app's v3 upgrade does.
+// Is this color a job? Used to label shifts "work" (for the night-shift rule and the
+// schedule-is-known check). Older saved colors have no "tg": guess from the name.
 function tgOf(ty) {
   if (!ty) return 'plan';
   if (ty.show === 'note') return 'note';
-  if (ty.tg) return ty.tg;
+  if (ty.tg === 'work') return 'work';
+  if (ty.tg) return 'plan';
   return /work|depot|shift|job/i.test(ty.name || '') ? 'work' : 'plan';
 }
 

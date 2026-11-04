@@ -10,6 +10,8 @@ Read-only display for one Google Calendar. Google Calendar stays the source of t
 | `api/settings.js` | Vercel function. Checks the passcode, then reads/writes settings in Supabase |
 | `api/share.js` | Vercel function. Gives Nova Joe's schedule for the Together tab (needs the shared key) |
 | `api/partner.js` | Vercel function. Reads Irina's schedule from Nova for the Together tab |
+| `api/widget.js` | Vercel function. Read-only feed for Pocket's iPhone widgets: 7 days of events, free time, day notes, next payday (needs `GLANCE_WIDGET_KEY`) |
+| `version.json` | Current build (`glance-8`), checked after each deploy |
 | `api/_lib/glance.js` | Shared helpers for the functions (not a route) |
 | `supabase/schema.sql` | Run once in the Supabase SQL editor (Loop's project). Creates `glance_settings` |
 | `manifest.webmanifest`, icons | Home-screen app setup |
@@ -25,6 +27,7 @@ Read-only display for one Google Calendar. Google Calendar stays the source of t
 | `SUPABASE_SECRET_KEY` | Optional. Loop's secret key (`sb_secret_…`, or the legacy `service_role` key) |
 | `SHARE_KEY` | Together tab. A long random secret, exactly the same in Glance and Nova |
 | `PARTNER_URL` | Together tab. Nova's web address, e.g. `https://nova-xxxx.vercel.app` |
+| `GLANCE_WIDGET_KEY` | Widget feed. A long random secret; the same value goes in the iPhone keychain as `glance_widget_key` (Pocket's Scriptable script asks for it) |
 | `TIMEZONE` | Optional. Defaults to `America/Detroit` |
 
 **Env var changes need a manual Redeploy in Vercel.**

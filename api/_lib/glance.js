@@ -1,4 +1,4 @@
-// Glance — shared server helpers. Files under api/_lib are not routes; Vercel bundles them
+// Glance — shared server helpers (glance-8). Files under api/_lib are not routes; Vercel bundles them
 // into the functions that require them.
 const crypto = require('crypto');
 
@@ -123,12 +123,14 @@ async function readSettings() {
 /* ---------- Event colors → what an event means for planning together ----------
    Same matching as the app (index.html typeOf): first color from the top whose words fit. */
 const DEFAULT_TYPES = [
-  { name: 'Payday', words: ['Paycheck', 'Payday'], show: 'note' },
-  { name: 'INC work', words: ['Working', 'INC'], tg: 'work' },
-  { name: 'Home Depot', words: ['Home Depot', 'HD'], tg: 'work' },
-  { name: 'Workout', words: ['Gym', 'Workout', 'Bike', 'Planet Fitness'], tg: 'plan' },
-  { name: 'Pickleball', words: ['Pickleball'], tg: 'plan' }
+  { name: 'Payday', color: '#ffd60a', words: ['Paycheck', 'Payday'], show: 'note' },
+  { name: 'INC work', color: '#0a84ff', words: ['Working', 'INC'], tg: 'work' },
+  { name: 'Home Depot', color: '#ff9f0a', words: ['Home Depot', 'HD'], tg: 'work' },
+  { name: 'Workout', color: '#30d158', words: ['Gym', 'Workout', 'Bike', 'Planet Fitness'], tg: 'plan' },
+  { name: 'Pickleball', color: '#bf5af2', words: ['Pickleball'], tg: 'plan' }
 ];
+// Google's own event colors (same map as the app's GCOL)
+const GCOL = { 1: '#7986cb', 2: '#33b679', 3: '#8e24aa', 4: '#e67c73', 5: '#f6bf26', 6: '#f4511e', 7: '#039be5', 8: '#8a8f98', 9: '#3f51b5', 10: '#0b8043', 11: '#d50000' };
 
 function typeOf(types, title) {
   const t = String(title || '').toLowerCase();
@@ -174,7 +176,24 @@ function dayStartUTC(dateStr) {
   return new Date(dateStr + 'T05:00:00Z');
 }
 
+// A local wall-clock time in TZ ("2026-11-03", 17, 30) as an instant. Handles DST days.
+function localInstant(dateStr, hour, min) {
+  const want = dateStr + 'T' + String(hour).padStart(2, '0') + ':' + String(min || 0).padStart(2, '0');
+  const base = dayStartUTC(dateStr).getTime() + (hour * 60 + (min || 0)) * 60000;
+  for (const adj of [0, -3600000, 3600000]) {
+    const d = new Date(base + adj);
+    if (wall(d.toISOString()) === want) return d;
+  }
+  return new Date(base);
+}
+
+function addDays(s, n) {
+  const d = new Date(s + 'T12:00:00Z');
+  d.setUTCDate(d.getUTCDate() + n);
+  return d.toISOString().slice(0, 10);
+}
+
 module.exports = {
   TZ, safeEqual, loadAccount, calendarIds, getToken, listEvents, googleError,
-  supabase, readSettings, DEFAULT_TYPES, typeOf, tgOf, wall, dayStartUTC
+  supabase, readSettings, DEFAULT_TYPES, GCOL, typeOf, tgOf, wall, dayStartUTC, localInstant, addDays
 };

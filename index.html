@@ -528,7 +528,7 @@ window.addEventListener('pageshow',function(){setTimeout(settle,120)});
 document.addEventListener('focusout',function(){setTimeout(settle,180)});
 
 /* ---------- Settings ---------- */
-var VERSION='glance-7';
+var APP_VERSION='glance-8';
 var DEF={v:3,mode:'auto',accent:'#5b8cff',glass:60,radius:22,weekStart:0,h24:false,winStart:7,winEnd:23,updatedAt:0,
   // Together tab: your name as Irina sees it, sharing on/off, look-ahead in weeks, shortest hang in hours,
   // hang hours, the hour she's up again after a night shift (0 = off), how far ahead your schedule is set
@@ -1323,7 +1323,7 @@ function renderSettings(){
     '</div></div>';
   h+='<div class="sec"><h4>This Device</h4><div class="box">'+(fullH()?'<div class="line"><span>Fill Screen Bottom</span>'+seg('fill',[['1','On'],['0','Off']],fillOn()?'1':'0')+'</div>':'')+'<button class="act" id="refNow">Refresh Now</button><button class="act danger" id="lockNow">Lock This Device</button></div>'+
     '<p class="hint">'+(lastFetch?'Calendar updated '+new Date(lastFetch).toLocaleString([], {month:'short',day:'numeric',hour:'numeric',minute:'2-digit'})+'. ':'')+
-    (synced===true?'Settings sync across your devices.':synced===false?'Settings are saved on this device only (Supabase isn\'t connected).':'')+' '+VERSION+'</p></div>';
+    (synced===true?'Settings sync across your devices.':synced===false?'Settings are saved on this device only (Supabase isn\'t connected).':'')+' '+APP_VERSION+'</p></div>';
   $('settings').innerHTML=h;
 }
 function changed(rerender){applySettings();saveSettings();render();if(rerender)renderSettings()}

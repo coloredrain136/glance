@@ -19,7 +19,7 @@
 // only counted on days that have something timed (same as the Week screen's rail).
 const G = require('./_lib/glance');
 
-const VERSION = 'glance-11';
+const VERSION = 'glance-12';
 const MIN = 60000;
 const WD = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 const MO = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];

@@ -30,7 +30,9 @@
    column down the top-right of the screen. Glance gives that whole right column to the dock instead:
    the pill sits at the top of it, Glance's tabs stand under it, Today is at the bottom for the thumb.
    The calendar gets the full height. Turned on by the script (shape), which goes by the screen's shape. */
-html.rail{--rail:calc(78px + env(safe-area-inset-right,0px));--dock:var(--safe-b)}
+/* The Duo reports its pill column as a right safe area (~85pt). The rail lives inside that column, under
+   the pill, so the column is never counted twice. */
+html.rail{--rail:max(78px,env(safe-area-inset-right,0px));--dock:0px}
 html[data-mode="light"]{
   --bg:#eef1f8; --ink:#131722; --ink-2:rgba(19,23,34,.64); --ink-3:rgba(19,23,34,.4);
   --glass:rgba(255,255,255,var(--glass-a)); --card:rgba(255,255,255,.66);
@@ -194,7 +196,7 @@ button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid 
 
 /* ---------- iPhone Duo: side rail ---------- */
 html.rail #app{max-width:none;padding-right:var(--rail)}
-html.rail .dock{left:auto;right:calc(8px + env(safe-area-inset-right,0px));flex-direction:column;gap:10px;padding:0}
+html.rail .dock{left:auto;right:max(4px,calc((var(--rail) - 72px) / 2));flex-direction:column;gap:10px;padding:0}
 html.rail .tabs{flex-direction:column;border-radius:34px;padding:5px;gap:3px}
 html.rail .tab{width:62px;height:58px;font-size:10.5px}
 html.rail #todayBtn{width:64px;height:64px}
@@ -571,7 +573,7 @@ window.addEventListener('pageshow',function(){setTimeout(settle,120)});
 document.addEventListener('focusout',function(){setTimeout(settle,180)});
 
 /* ---------- Settings ---------- */
-var APP_VERSION='glance-11';
+var APP_VERSION='glance-12';
 var DEF={v:3,mode:'auto',accent:'#5b8cff',glass:60,radius:22,weekStart:0,h24:false,winStart:7,winEnd:23,updatedAt:0,
   // Together tab: your name as Irina sees it, sharing on/off, look-ahead in weeks, shortest hang in hours,
   // hang hours, the hour she's up again after a night shift (0 = off), how far ahead your schedule is set

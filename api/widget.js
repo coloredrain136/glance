@@ -1,4 +1,4 @@
-// Glance — widget feed (glance-8). Read-only. Pocket's Scriptable widgets call this.
+// Glance — widget feed (glance-8, partner added in glance-10). Read-only. Pocket's and Phone Widgets' Scriptable widgets call this.
 //
 //   GET /api/widget                       header x-glance-widget-key: <GLANCE_WIDGET_KEY>  (or ?key=)
 //
@@ -9,7 +9,9 @@
 //                events:[{ title, color, when, start_label, s, e, next, past }],   timed, in time order
 //                all_day:[{ title, color }], notes:[{ title, color }],              notes = day notes (Payday)
 //                timeline:[ {kind:'event', ...event} | {kind:'free', text, a, b, live, past} ] } ],
-//         next_payday:{ date, title, in_days } | null }
+//         next_payday:{ date, title, in_days } | null,
+//         partner:{ ok:true, items:[{ title, kind:'work'|'plan'|'note', all_day, s, e, start, end }] }   Irina from Nova, today + 3 days
+//               | { ok:false, state } }                                                              (same states as /api/partner)
 //   401 wrong key · 503 not set up · 502 Google problem
 //
 // Same rules as the app: colors from Event Colors (first match from the top), Hidden left out,
@@ -17,7 +19,7 @@
 // only counted on days that have something timed (same as the Week screen's rail).
 const G = require('./_lib/glance');
 
-const VERSION = 'glance-8';
+const VERSION = 'glance-10';
 const MIN = 60000;
 const WD = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 const MO = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
@@ -90,6 +92,34 @@ function planDay(date, today, events, S, now) {
   };
 }
 
+// Irina's schedule from Nova (same call as /api/partner, so the key stays on the server).
+// Never throws: the rest of the feed still works if Nova is down.
+async function partnerFeed(today) {
+  const base = (process.env.PARTNER_URL || '').trim().replace(/\/+$/, '');
+  const key = process.env.SHARE_KEY;
+  if (!base || !key || !/^https:\/\//.test(base)) return { ok: false, state: 'not_setup' };
+  const from = today, to = G.addDays(today, 4);
+  let r;
+  try {
+    r = await fetch(base + '/api/share?from=' + from + '&to=' + to, { headers: { 'x-share-key': key }, signal: AbortSignal.timeout(6000) });
+  } catch (e) { return { ok: false, state: 'unreachable' }; }
+  if (r.status === 401) return { ok: false, state: 'key_mismatch' };
+  if (r.status === 403) return { ok: false, state: 'sharing_off' };
+  if (r.status === 404 || r.status === 405 || r.status === 503) return { ok: false, state: 'not_ready' };
+  const j = await r.json().catch(() => null);
+  if (!r.ok || !j || !Array.isArray(j.items)) return { ok: false, state: r.ok ? 'bad_answer' : 'unreachable' };
+  const at = (w) => { // Nova's local wall time "YYYY-MM-DD" or "YYYY-MM-DDTHH:MM" → instant
+    const m = /^(\d{4}-\d\d-\d\d)(?:[T ](\d\d):(\d\d))?/.exec(w || '');
+    return m ? G.localInstant(m[1], +(m[2] || 0), +(m[3] || 0)).getTime() : NaN;
+  };
+  const items = j.items.map((x) => {
+    const s = at(x.start); let e = at(x.end);
+    if (isNaN(e) || e < s) e = s;
+    return { title: String(x.title || ''), kind: x.kind === 'work' || x.kind === 'note' ? x.kind : 'plan', all_day: !!x.all_day, s, e, start: x.start, end: x.end };
+  }).filter((x) => !isNaN(x.s)).sort((a, b) => a.s - b.s || a.e - b.e);
+  return { ok: true, items };
+}
+
 module.exports = async (req, res) => {
   res.setHeader('Cache-Control', 'no-store');
   const wkey = process.env.GLANCE_WIDGET_KEY;
@@ -118,6 +148,7 @@ module.exports = async (req, res) => {
     const ahead = 35; // 7 days shown, plus a month to find the next payday
     const token = await G.getToken(acct);
     const from = G.dayStartUTC(today).toISOString(), to = G.dayStartUTC(G.addDays(today, ahead)).toISOString();
+    const partnerP = partnerFeed(today);
     const lists = await Promise.all(cals.map((c) => G.listEvents(token, c, from, to)));
 
     const events = lists.flat().map((ev) => {
@@ -151,7 +182,8 @@ module.exports = async (req, res) => {
       v: 1, app: 'glance', version: VERSION, tz: G.TZ, generated_at: new Date(now).toISOString(), today,
       appearance: { mode: S.mode, accent: S.accent, h24: S.h24 },
       window: { start: S.winStart, end: S.winEnd },
-      days, next_payday: nextPay
+      days, next_payday: nextPay,
+      partner: await partnerP
     });
   } catch (e) {
     res.status(502).json({ error: 'google', message: G.googleError(e, acct) });

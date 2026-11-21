@@ -24,7 +24,13 @@
   --ease:cubic-bezier(.32,.72,0,1); --fast:180ms; --med:320ms;
   --safe-t:env(safe-area-inset-top,0px); --safe-b:env(safe-area-inset-bottom,0px);
   --dock:calc(52px + var(--safe-b)); /* where the top of the dock sits, measured from the bottom */
+  --rail:0px; /* width kept clear on the right when the dock is a side rail (iPhone Duo) */
 }
+/* iPhone Duo (and other wide, short screens under 900pt): the Duo keeps its clock/status pill in a
+   column down the top-right of the screen. Glance gives that whole right column to the dock instead:
+   the pill sits at the top of it, Glance's tabs stand under it, Today is at the bottom for the thumb.
+   The calendar gets the full height. Turned on by the script (shape), which goes by the screen's shape. */
+html.rail{--rail:calc(78px + env(safe-area-inset-right,0px));--dock:var(--safe-b)}
 html[data-mode="light"]{
   --bg:#eef1f8; --ink:#131722; --ink-2:rgba(19,23,34,.64); --ink-3:rgba(19,23,34,.4);
   --glass:rgba(255,255,255,var(--glass-a)); --card:rgba(255,255,255,.66);
@@ -184,6 +190,31 @@ button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid 
   .wgap.now{color:var(--accent);font-weight:600}
   .wgap.past{opacity:.45}
   .none{flex:none;align-self:stretch;text-align:center;padding:18px 8px}
+}
+
+/* ---------- iPhone Duo: side rail ---------- */
+html.rail #app{max-width:none;padding-right:var(--rail)}
+html.rail .dock{left:auto;right:calc(8px + env(safe-area-inset-right,0px));flex-direction:column;gap:10px;padding:0}
+html.rail .tabs{flex-direction:column;border-radius:34px;padding:5px;gap:3px}
+html.rail .tab{width:62px;height:58px;font-size:10.5px}
+html.rail #todayBtn{width:64px;height:64px}
+html.rail .sheet{right:var(--rail);max-width:none;margin:0}
+html.rail #settings{right:0;padding-right:calc(var(--rail) + 4px)}
+html.rail #toast{left:calc((100% - var(--rail)) / 2);bottom:calc(28px + var(--safe-b))}
+/* Inner screen: when there's room, three events to a line instead of two */
+html.rail #weekScroll{container-type:inline-size}
+@container (min-width:600px){html.rail .ev{flex-basis:calc(33.33% - 4px)}}
+/* Short screens (the Duo's outer screen, phones sideways): a tighter top and week rows */
+@media (max-height:720px) and (max-width:899px){
+  .top{padding-top:4px;min-height:40px}
+  #titleBtn{min-height:40px}
+  #titleBtn h1{font-size:26px}
+  #weekScroll{padding-top:8px}
+  #weekBody{gap:4px}
+  .wrow{padding:5px 5px 5px 0}
+  .ev{padding:4px 8px 4px 14px}
+  .ev::before{top:5px;bottom:5px}
+  .cell{height:44px}
 }
 
 /* ---------- Day ---------- */
@@ -508,9 +539,19 @@ function fullH(){
 function fillOn(){try{return localStorage.getItem('glance.fill')!=='0'}catch(e){return true}}
 function fitH(){
   var ex=fullH(), st=document.documentElement.style;
-  if(fillOn()&&ex&&ex-window.innerHeight>4)st.setProperty('--app-h',ex+'px'); else st.removeProperty('--app-h');
+  var gap=ex-window.innerHeight;
+  // Only top up a short status-bar sized gap. A bigger gap means the screen just changed (Duo fold/unfold)
+  // or the numbers are stale, and stretching the page then would push the bottom off the screen.
+  if(fillOn()&&ex&&gap>4&&gap<=110)st.setProperty('--app-h',ex+'px'); else st.removeProperty('--app-h');
 }
-var healDead=false;
+/* Screen shape: wide, short screens under 900pt (the iPhone Duo's outer and inner screens) get the side
+   rail. Goes by the screen, not the window, so the keyboard opening never flips the layout. */
+function shape(){
+  var w=window.innerWidth, sw=screen.width||w, sh=screen.height||window.innerHeight;
+  var r=Math.min(sw,sh)/Math.max(sw,sh), on=w<900&&r>0.6;
+  document.documentElement.classList.toggle('rail',on);
+}
+var healDead=false, shapeT;
 function heal(){
   var ex=fullH(), before=window.innerHeight;
   if(healDead||!ex||ex-before<=4)return;
@@ -521,14 +562,16 @@ function heal(){
   setTimeout(function(){if(window.innerHeight-before<=4)healDead=true},200); // didn't help: stop trying this session
 }
 function settle(){heal();setTimeout(fitH,80)}
-fitH();
-window.addEventListener('resize',fitH);
-window.addEventListener('orientationchange',function(){setTimeout(settle,250)});
+shape();fitH();
+window.addEventListener('resize',function(){shape();fitH()});
+window.addEventListener('orientationchange',function(){setTimeout(function(){shape();settle()},250)});
+// Folding or unfolding the Duo: measure again once the new screen has settled
+if(window.visualViewport)window.visualViewport.addEventListener('resize',function(){clearTimeout(shapeT);shapeT=setTimeout(function(){shape();fitH()},150)});
 window.addEventListener('pageshow',function(){setTimeout(settle,120)});
 document.addEventListener('focusout',function(){setTimeout(settle,180)});
 
 /* ---------- Settings ---------- */
-var APP_VERSION='glance-10';
+var APP_VERSION='glance-11';
 var DEF={v:3,mode:'auto',accent:'#5b8cff',glass:60,radius:22,weekStart:0,h24:false,winStart:7,winEnd:23,updatedAt:0,
   // Together tab: your name as Irina sees it, sharing on/off, look-ahead in weeks, shortest hang in hours,
   // hang hours, the hour she's up again after a night shift (0 = off), how far ahead your schedule is set
